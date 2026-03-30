@@ -39,7 +39,17 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
   >
     <div className={`relative ${compact ? 'w-18 h-18' : 'w-22 h-22'} flex items-center justify-center transition-all duration-200 ${isSelected ? 'scale-110' : ''}`}>
       <div className={`relative ${compact ? 'w-16 h-16' : 'w-20 h-20'}`}>
-        <Image src={src} alt={label} fill style={{ objectFit: 'contain', filter: isSelected ? 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.9))' : 'none' }} priority />
+        <img
+          src={src}
+          alt={label}
+          draggable={false}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            filter: isSelected ? "drop-shadow(0 0 10px rgba(59, 130, 246, 0.9))" : "none"
+          }}
+        />
       </div>
     </div>
     <span className={`folder-label transition-colors z-10 ${compact ? 'text-sm' : ''} ${isSelected ? 'bg-blue-600 text-white shadow-lg' : ''}`}>
@@ -392,7 +402,13 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 <>
                   <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', transform: `scale(${photoZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
-                      <Image src={activePhoto} alt="Photography preview image" fill style={{ objectFit: 'contain' }} />
+                      <Image
+                        src={activePhoto}
+                        alt="Photography preview image"
+                        fill
+                        sizes={isMobile ? "90vw" : "620px"}
+                        style={{ objectFit: 'contain' }}
+                      />
                     </div>
                     <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '4px 6px' }}>
                       <button onClick={() => setPhotoZoom((z) => Math.max(0.6, +(z - 0.1).toFixed(2)))} style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>-</button>
@@ -404,7 +420,14 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     {(title === "Photography" ? photographyGallery : (gallery && gallery.length > 0 ? gallery : photographyGallery)).map((src, idx) => (
                       <button key={src} onClick={() => setActivePhoto(src)} style={{ minWidth: isMobile ? '82px' : '96px', border: activePhoto === src ? '1px solid #b9d7ff' : '1px solid #ececec', borderRadius: '10px', padding: isMobile ? '5px' : '6px', backgroundColor: activePhoto === src ? '#eef6ff' : '#fafafa', cursor: 'pointer' }}>
                         <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: '7px', overflow: 'hidden' }}>
-                          <Image src={src} alt={`Photography thumbnail ${idx + 1}`} fill style={{ objectFit: 'cover' }} />
+                          <Image
+                            src={src}
+                            alt={`Photography thumbnail ${idx + 1}`}
+                            fill
+                            sizes="96px"
+                            loading="lazy"
+                            style={{ objectFit: 'cover' }}
+                          />
                         </div>
                       </button>
                     ))}
@@ -413,7 +436,13 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               ) : (
                 <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'relative', width: isMobile ? '96px' : '120px', height: isMobile ? '96px' : '120px' }}>
-                    <Image src={title === "Creative Cloud" ? activeCreativeItem.src : icon} alt={title === "Creative Cloud" ? activeCreativeItem.label : title} fill style={{ objectFit: 'contain', filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.12))' }} />
+                    <Image
+                      src={title === "Creative Cloud" ? activeCreativeItem.src : icon}
+                      alt={title === "Creative Cloud" ? activeCreativeItem.label : title}
+                      fill
+                      sizes={isMobile ? "96px" : "120px"}
+                      style={{ objectFit: 'contain', filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.12))' }}
+                    />
                   </div>
                 </div>
               )}
@@ -422,7 +451,14 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   {creativeCloudItems.map((item) => (
                     <button key={item.label} onClick={() => setActiveCreativeItem(item)} style={{ minWidth: isMobile ? '76px' : '86px', border: activeCreativeItem.label === item.label ? '1px solid #b9d7ff' : '1px solid #ececec', borderRadius: '10px', padding: isMobile ? '6px' : '8px', backgroundColor: activeCreativeItem.label === item.label ? '#eef6ff' : '#fafafa', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                       <div style={{ position: 'relative', width: isMobile ? '24px' : '30px', height: isMobile ? '24px' : '30px' }}>
-                        <Image src={item.src} alt={item.label} fill style={{ objectFit: 'contain' }} />
+                        <Image
+                          src={item.src}
+                          alt={item.label}
+                          fill
+                          sizes="30px"
+                          loading="lazy"
+                          style={{ objectFit: 'contain' }}
+                        />
                       </div>
                       <span style={{ fontSize: '10px', color: '#666', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
                     </button>
@@ -838,28 +874,32 @@ export default function Home() {
       
       <div style={{ position: 'absolute', top: isMobile ? '12px' : 'auto', bottom: isMobile ? 'auto' : '24px', left: isMobile ? '50%' : '32px', transform: isMobile ? 'translateX(-50%)' : 'none', maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', overflowX: isMobile ? 'auto' : 'visible', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '6px', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0, 0, 0, 0.05)', pointerEvents: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 500, color: '#999' }}>
-          <div style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="4" width="18" height="16" rx="2" fill="#e0e0e0" /><rect x="5" y="6" width="14" height="2" fill="#fff" opacity="0.5" /><rect x="5" y="9" width="14" height="2" fill="#fff" opacity="0.3" /><circle cx="17" cy="15" r="2" fill="#bdbdbd" /></svg></div>
+          <div style={{ position: 'relative', width: '16px', height: '16px', flexShrink: 0 }}>
+            <img src="/icons/path/macintosh-hd.png" alt="Macintosh HD" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
           <span style={{ whiteSpace: 'nowrap' }}>Macintosh HD</span>
           <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa" opacity="0.8"><path d="M2.25 18.75V7.5c0-1.105.895-2 2-2h3.25l1.5 2.25h12.5c1.105 0 2 .895 2 2v9c0 1.105-.895 2-2 2H4.25c-1.105 0-2-.895-2-2Z" /></svg></div>
+          <div style={{ position: 'relative', width: '14px', height: '14px', flexShrink: 0 }}>
+            <img src="/icons/path/users.png" alt="Users" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
           <span style={{ whiteSpace: 'nowrap' }}>Users</span>
           <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Image src="/icons/center.png" width={14} height={14} alt="user" style={{ borderRadius: '50%' }} /></div>
+          <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/icons/center.png" width={14} height={14} alt="user" draggable={false} style={{ borderRadius: '50%' }} /></div>
           <span style={{ whiteSpace: 'nowrap' }}>daniellopez</span>
           <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Image src="/icons/center.png" width={14} height={14} alt="portfolio" /></div>
+          <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/icons/center.png" width={14} height={14} alt="portfolio" draggable={false} /></div>
           <span style={{ color: (view === "main" && !hoveredLabel) ? "#000" : "#999", whiteSpace: 'nowrap' }}>portfolio</span>
           {view !== "main" && (
             <>
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Image src={getSubViewIcon()} width={14} height={14} alt={view} /></div>
+              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src={getSubViewIcon()} width={14} height={14} alt={view} draggable={false} /></div>
               <span style={{ color: !hoveredLabel ? '#000' : '#999', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{view === 'aboutme' ? 'About Me' : view === 'creativecloud' ? 'Creative Cloud' : view === 'education' ? 'Education' : view}</span>
             </>
           )}
           {hoveredLabel && !showModal && (
             <>
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(() => { const icon = getIconForLabel(hoveredLabel); return icon ? <Image src={icon} width={14} height={14} alt={hoveredLabel} /> : null; })()}</div>
+              <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{(() => { const icon = getIconForLabel(hoveredLabel); return icon ? <img src={icon} width={14} height={14} alt={hoveredLabel} draggable={false} /> : null; })()}</div>
               <span style={{ color: '#000', whiteSpace: 'nowrap' }}>{hoveredLabel}</span>
             </>
           )}
@@ -868,9 +908,9 @@ export default function Home() {
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {activeModal.variant === 'notes' ? (
-                  <Image src="/icons/notes-symbol.png" width={14} height={14} alt="Notes" />
+                  <img src="/icons/notes-symbol.png" width={14} height={14} alt="Notes" draggable={false} />
                 ) : (
-                  <Image src={activeModal.icon} width={14} height={14} alt={showModal} />
+                  <img src={activeModal.icon} width={14} height={14} alt={showModal} draggable={false} />
                 )}
               </div>
               <span style={{ color: '#000', whiteSpace: 'nowrap' }}>{showModal}</span>
