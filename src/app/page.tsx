@@ -61,7 +61,7 @@ const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, galler
     Ollama: "Installing local runtime",
     "Claude Code": "Installing Claude Code package",
     Cursor: "Installing Cursor CLI",
-    ChatGPT: "Resolving openai package",
+    OpenAI: "Resolving openai package",
     Git: "Installing git binaries",
   };
   const terminalCommand = message.split("\n")[0] || "echo ready";
@@ -497,7 +497,7 @@ const skillIcons = [
   { src: "/icons/skills/ollama.png", label: "Ollama", x: 0, y: 2 },
   { src: "/icons/skills/icon6.png", label: "Claude Code", x: 1, y: 2 },
   { src: "/icons/skills/icon3.png", label: "Cursor", x: 2, y: 2 },
-  { src: "/icons/skills/chatgpt.png", label: "ChatGPT", x: 3, y: 2 },
+  { src: "/icons/skills/chatgpt.png", label: "OpenAI", x: 3, y: 2 },
   { src: "/icons/skills/git_folder.png", label: "Git", x: 4, y: 2 },
 ];
 
@@ -578,7 +578,7 @@ const modalData: Record<string, { title: string; message: string; icon: string; 
   Ollama: { title: "Ollama", message: "brew install ollama", icon: "/icons/skills/ollama.png", variant: "terminal" },
   "Claude Code": { title: "Claude Code", message: "claude\n╭─── Claude Code v2.1.87 ─────────────────────────────────────────────────────────────╮\n│                                                    │ Tips for getting started       │\n│                    Welcome back!                   │ Run /init to create a CLAUDE… │\n│                                                    │ ────────────────────────────── │\n│                       ▐▛███▜▌                      │ Recent activity                │\n│                      ▝▜█████▛▘                     │ No recent activity             │\n│                        ▘▘ ▝▝                       │                                │\n│        Opus 4.6 (1M context) · Claude Max ·        │                                │\n│                    Organization                    │                                │\n│                     ~/portfolio                    │                                │\n╰─────────────────────────────────────────────────────────────────────────────────────╯\n\n───────────────────────────────────────────────────────────────────────────────────────\n❯\n───────────────────────────────────────────────────────────────────────────────────────\n? for shortcuts                                                  ◐ medium · /effort", icon: "/icons/skills/icon6.png", variant: "terminal" },
   Cursor: { title: "Cursor", message: "brew install --cask cursor-cli", icon: "/icons/skills/icon3.png", variant: "terminal" },
-  ChatGPT: { title: "ChatGPT", message: "npm install openai", icon: "/icons/skills/chatgpt.png", variant: "terminal" },
+  OpenAI: { title: "OpenAI", message: "npm install openai", icon: "/icons/skills/chatgpt.png", variant: "terminal" },
   Git: { title: "Git", message: "brew install git", icon: "/icons/skills/git_folder.png", variant: "terminal" },
 };
 
