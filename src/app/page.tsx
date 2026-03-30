@@ -43,8 +43,16 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
           layoutId="selection-border"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1.15 }}
-          className="absolute inset-0 border-2 border-blue-400/50 rounded-xl"
-          style={{ width: compact ? '74px' : '90px', height: compact ? '74px' : '90px' }}
+          className="absolute inset-0 rounded-xl"
+          style={{
+            width: compact ? '74px' : '90px',
+            height: compact ? '74px' : '90px',
+            borderRadius: '14px',
+            // Use shadow-based ring for smoother edges than a scaled border.
+            boxShadow: '0 0 0 2px rgba(96, 165, 250, 0.45)',
+            transform: 'translateZ(0)',
+            willChange: 'transform'
+          }}
         />
       )}
       
