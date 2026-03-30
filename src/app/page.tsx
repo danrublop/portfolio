@@ -647,14 +647,14 @@ export default function Home() {
     const controller = new AbortController();
     const updateVisitorCount = async () => {
       try {
-        const res = await fetch(
-          "https://api.countapi.xyz/hit/danrublop-portfolio/visitors",
-          { signal: controller.signal, cache: "no-store" }
-        );
+        const res = await fetch("/api/visitors", {
+          signal: controller.signal,
+          cache: "no-store"
+        });
         if (!res.ok) return;
         const data = await res.json();
-        if (typeof data?.value === "number") {
-          setVisitorCount(data.value);
+        if (typeof data?.count === "number") {
+          setVisitorCount(data.count);
         }
       } catch {
         // Keep UI resilient if the counter service is unavailable.
