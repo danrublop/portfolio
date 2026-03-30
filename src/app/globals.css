@@ -42,7 +42,7 @@ main {
 /* macOS Folder Label Styles */
 .folder-label {
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 9999px;
   font-size: 13px;
   font-weight: 500;
   margin-top: 4px;
@@ -50,13 +50,11 @@ main {
   user-select: none;
   white-space: nowrap;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-
-.group:hover .folder-label {
-  background-color: var(--mac-selection);
-  color: #ffffff;
-}
 
 /* Icons */
 .w-16 { width: 64px; }
