@@ -38,24 +38,6 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
     }}
   >
     <div className={`relative ${compact ? 'w-18 h-18' : 'w-22 h-22'} flex items-center justify-center transition-all duration-200 ${isSelected ? 'scale-110' : ''}`}>
-      {isSelected && (
-        <motion.div 
-          layoutId="selection-border"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1.15 }}
-          className="absolute inset-0 rounded-xl"
-          style={{
-            width: compact ? '74px' : '90px',
-            height: compact ? '74px' : '90px',
-            borderRadius: '14px',
-            // Use shadow-based ring for smoother edges than a scaled border.
-            boxShadow: '0 0 0 2px rgba(96, 165, 250, 0.45)',
-            transform: 'translateZ(0)',
-            willChange: 'transform'
-          }}
-        />
-      )}
-      
       <div className={`relative ${compact ? 'w-16 h-16' : 'w-20 h-20'}`}>
         <Image src={src} alt={label} fill style={{ objectFit: 'contain', filter: isSelected ? 'drop-shadow(0 0 16px rgba(59, 130, 246, 0.9))' : 'none' }} priority />
       </div>
