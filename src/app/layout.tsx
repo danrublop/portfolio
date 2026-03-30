@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Daniel Lopez Portfolio",
   description: "Daniel's personal portfolio styled after macOS Finder folders.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
