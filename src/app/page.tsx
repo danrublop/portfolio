@@ -42,7 +42,7 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
         <Image src={src} alt={label} fill style={{ objectFit: 'contain', filter: isSelected ? 'drop-shadow(0 0 16px rgba(59, 130, 246, 0.9))' : 'none' }} priority />
       </div>
     </div>
-    <span className={`folder-label transition-colors z-10 ${compact ? 'text-sm' : ''} ${isSelected ? 'bg-blue-600 text-white px-3 py-0.5 rounded-sm shadow-lg' : ''}`}>
+    <span className={`folder-label transition-colors z-10 ${compact ? 'text-sm' : ''} ${isSelected ? 'bg-blue-600 text-white shadow-lg' : ''}`}>
       {label}
     </span>
   </motion.div>
