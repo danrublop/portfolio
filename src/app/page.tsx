@@ -624,6 +624,7 @@ export default function Home() {
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
 
   const toggleOpen = () => { if (view !== "main") { setView("main"); setIsOpen(true); } else { setIsOpen(!isOpen); } };
   const openSkills = () => { setView("skills"); setHoveredLabel(null); };
@@ -640,6 +641,27 @@ export default function Home() {
     updateViewport();
     mediaQuery.addEventListener("change", updateViewport);
     return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const updateVisitorCount = async () => {
+      try {
+        const res = await fetch(
+          "https://api.countapi.xyz/hit/danrublop-portfolio/visitors",
+          { signal: controller.signal, cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (typeof data?.value === "number") {
+          setVisitorCount(data.value);
+        }
+      } catch {
+        // Keep UI resilient if the counter service is unavailable.
+      }
+    };
+    updateVisitorCount();
+    return () => controller.abort();
   }, []);
 
   // 2D Spatially Consistent Keyboard Navigation
@@ -959,6 +981,25 @@ export default function Home() {
           <ArrowBigLeft size={16} strokeWidth={2.25} />
         </button>
       )}
+
+      <div
+        style={{
+          position: "absolute",
+          right: "16px",
+          bottom: "16px",
+          zIndex: 10000,
+          fontSize: "12px",
+          fontWeight: 500,
+          color: "#666",
+          background: "rgba(255,255,255,0.72)",
+          border: "1px solid rgba(0,0,0,0.06)",
+          borderRadius: "6px",
+          padding: "4px 8px",
+          backdropFilter: "blur(8px)"
+        }}
+      >
+        {`Visitors: ${visitorCount ?? "..."}`}
+      </div>
     </main>
   );
 }
