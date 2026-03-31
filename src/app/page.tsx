@@ -252,17 +252,19 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               : variant === "terminal"
                   ? '1120px'
                   : variant === "map"
-                    ? '920px'
+                    ? '1120px'
                     : variant === "photos"
                       ? '620px'
-                      : '380px',
+                      : variant === "notes"
+                        ? `${notesWidth ?? 500}px`
+                        : '420px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
-            backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
+            backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : variant === "map" ? 'transparent' : '#ffffff',
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
-            border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
+            border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : variant === "map" ? 'none' : '1px solid rgba(0,0,0,0.08)',
             padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" || variant === "map" ? '0' : '32px',
-            minHeight: variant === "map" ? (isMobile ? '400px' : '440px') : 'auto',
+            minHeight: variant === "map" ? (isMobile ? '400px' : '480px') : 'auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -271,6 +273,12 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             overflow: isMobile ? 'hidden' : 'visible'
           }}
         >
+          {variant === "map" && (
+            <div style={{ position: 'absolute', inset: 0, borderRadius: '22px', overflow: 'hidden', zIndex: -1 }}>
+              <Image src="/images/optimized/lima-map.png" alt="Map Background" fill priority style={{ objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 80px)' }} />
+            </div>
+          )}
           {variant === "notes" ? (
             <div style={{ width: 'calc(100% + 48px)', margin: '-24px -24px 16px -24px', backgroundColor: '#ffd95a', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: '1px solid #e3c44e', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -283,7 +291,20 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               </div>
             </div>
           ) : variant === "terminal" || variant === "photos" || variant === "map" ? (
-            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : variant === "map" ? '#ffffff' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : variant === "map" ? '1px solid #f2f2f2' : '1px solid #d9d9d9', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ 
+              width: '100%', 
+              position: 'relative', 
+              background: variant === "terminal" ? '#262626' : variant === "map" ? 'rgba(255,255,255,0.45)' : '#efefef', 
+              backdropFilter: variant === "map" ? 'blur(20px) saturate(180%)' : 'none',
+              borderTopLeftRadius: '22px', 
+              borderTopRightRadius: '22px', 
+              borderBottom: variant === "terminal" ? '1px solid #303030' : variant === "map" ? '1px solid rgba(0,0,0,0.05)' : '1px solid #d9d9d9', 
+              padding: '10px 16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              zIndex: 10 
+            }}>
               <div style={{ display: 'flex', gap: '8px', minWidth: '60px' }}>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
@@ -404,16 +425,9 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               )}
             </div>
           ) : variant === "photos" || variant === "map" ? (
-            <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: variant === "map" ? '0' : isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
+            <div style={{ width: '100%', flex: 1, maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: variant === "map" ? '0' : isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: variant === "map" ? 'transparent' : '#fff', display: 'flex', flexDirection: 'column' }}>
               {variant === "map" ? (
-                <div style={{ position: 'relative', width: '100%', height: isMobile ? '400px' : '440px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
-                  <Image
-                    src="/images/optimized/lima-map.png"
-                    alt="Map of Lima, Peru"
-                    fill
-                    priority
-                    style={{ objectFit: 'cover' }}
-                  />
+                <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: isMobile ? '400px' : '440px', overflow: 'hidden' }}>
                   <div style={{ 
                     position: 'absolute', 
                     bottom: '16px', 
@@ -427,7 +441,8 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px'
+                    gap: '8px',
+                    zIndex: 10
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
                       <div style={{ width: '48px', height: '48px', position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }}>
@@ -439,14 +454,14 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                       </div>
                     </div>
                     <div style={{ width: '100%', height: '1px', backgroundColor: 'rgba(0,0,0,0.05)', margin: '6px 0' }} />
-                    <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap' }}>
+                    <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'row', gap: '24px', flexWrap: 'wrap' }}>
                       <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• I am Peruvian 🇵🇪</li>
                       <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• I speak Spanish 🗣️</li>
                       <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• My family is from Lima ❤️</li>
                     </ul>
                   </div>
                 </div>
-              ) : (variant === "photos" && (title === "Photography" || (gallery && (gallery.length ?? 0) > 0))) ? (
+              ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
                 <>
                   <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', transform: `scale(${photoZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
@@ -513,7 +528,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   ))}
                 </div>
               )}
-              {variant !== "map" && (
+              {variant !== "map" && message && (
                 <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>{message}</p>
               )}
             </div>
