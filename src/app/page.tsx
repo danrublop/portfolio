@@ -430,9 +430,20 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111' }}>{title}</h4>
-                        <p style={{ margin: 0, fontSize: '13px', color: '#666', fontWeight: 500 }}>Capital City · Lima, Peru</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                          <span style={{ fontSize: '10px', color: '#888', fontWeight: 600 }}>About Me</span>
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                          <span style={{ fontSize: '10px', color: '#888', fontWeight: 600 }}>Peruvian</span>
+                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                          <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>Maps</span>
+                        </div>
                       </div>
                     </div>
+                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I am Peruvian 🇵🇪</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I speak Spanish 🗣️</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>My family is from Lima ❤️</li>
+                    </ul>
                   </div>
                 </div>
               ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
@@ -931,7 +942,27 @@ export default function Home() {
         <div className="absolute top-8 left-0 right-0 flex justify-center text-neutral-400 text-xs font-light w-full"><span>{view === 'main' ? "WASD / Arrows to explore • Enter to open • Esc to close" : "WASD / Arrows to explore • Enter to select • Esc to go back"}</span></div>
       )}
       
-      <div style={{ position: 'absolute', top: isMobile ? '12px' : 'auto', bottom: isMobile ? 'auto' : '24px', left: isMobile ? '50%' : '32px', transform: isMobile ? 'translateX(-50%)' : 'none', maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', overflowX: isMobile ? 'auto' : 'visible', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '6px', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0, 0, 0, 0.05)', pointerEvents: 'none' }}>
+      <div style={{ 
+        position: 'absolute', 
+        top: isMobile ? '12px' : 'auto', 
+        bottom: isMobile ? 'auto' : '24px', 
+        left: isMobile ? '50%' : '32px', 
+        transform: isMobile ? 'translateX(-50%)' : 'none', 
+        maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', 
+        overflowX: isMobile ? 'auto' : 'visible', 
+        zIndex: 9999, 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px', 
+        padding: '6px 12px', 
+        borderRadius: '6px', 
+        backgroundColor: 'rgba(255, 255, 255, 0.4)', 
+        backdropFilter: 'blur(10px)', 
+        border: '1px solid rgba(0, 0, 0, 0.05)', 
+        pointerEvents: 'none',
+        opacity: showModal ? 0 : 1,
+        transition: 'opacity 0.2s ease-in-out'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 500, color: '#999' }}>
           <div style={{ position: 'relative', width: '16px', height: '16px', flexShrink: 0 }}>
             <img src="/icons/path/macintosh-hd.png" alt="Macintosh HD" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
