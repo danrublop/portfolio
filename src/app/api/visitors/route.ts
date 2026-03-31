@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.countapi.xyz/hit/danrublop-portfolio/visitors",
+      "https://api.counterapi.dev/v1/danrublop-portfolio/visitors/up",
       { cache: "no-store" }
     );
 
@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     const data = await res.json();
-    const count = typeof data?.value === "number" ? data.value : null;
+    const count = typeof data?.count === "number" ? data.count : null;
     return NextResponse.json({ count });
   } catch {
     return NextResponse.json({ count: null }, { status: 500 });
