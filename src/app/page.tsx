@@ -249,13 +249,15 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             width: '100%',
             maxWidth: isMobile
               ? 'calc(100vw - 16px)'
-              : variant === "notes"
-                ? `${notesWidth ?? 500}px`
-                : variant === "terminal"
-                  ? '1120px'
-                  : (variant === "photos" || variant === "map")
-                    ? '720px'
-                    : '380px',
+              : variant === "terminal"
+                ? '1120px'
+                : variant === "map"
+                  ? '720px'
+                  : variant === "photos"
+                    ? '620px'
+                    : variant === "notes"
+                      ? `${notesWidth ?? 500}px`
+                      : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
             backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
             borderRadius: '22px',
@@ -318,7 +320,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
           )}
 
           {variant === "map" ? (
-            <div style={{ width: '100%', height: isMobile ? '460px' : '520px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: isMobile ? '460px' : '500px', position: 'relative', overflow: 'hidden', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px' }}>
               <Image src={photo || ""} alt="Map" fill priority style={{ objectFit: 'cover' }} />
               
               {/* Glassy Floating Container at Bottom */}
