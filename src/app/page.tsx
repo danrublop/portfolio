@@ -399,7 +399,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               )}
             </div>
           ) : variant === "photos" || variant === "map" ? (
-            <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
+            <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: variant === "map" ? '0' : isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
               {variant === "map" ? (
                 <div style={{ position: 'relative', width: '100%', height: isMobile ? 'calc(100vh - 120px)' : '420px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
                   <Image
@@ -425,18 +425,12 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     gap: '8px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '0.3px solid rgba(0,0,0,0.1)' }}>
-                        <Image src="/icons/maps-app.png" alt="Maps App" fill style={{ objectFit: 'contain' }} />
+                      <div style={{ width: '38px', height: '38px', position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)' }}>
+                        <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111' }}>{title}</h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
-                          <span style={{ fontSize: '10px', color: '#888', fontWeight: 600 }}>About Me</span>
-                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                          <span style={{ fontSize: '10px', color: '#888', fontWeight: 600 }}>Peruvian</span>
-                          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                          <span style={{ fontSize: '10px', color: '#666', fontWeight: 600 }}>Maps</span>
-                        </div>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>{title}</h4>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#555', fontWeight: 500 }}>Capital City · Lima, Peru</p>
                       </div>
                     </div>
                     <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -513,7 +507,9 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   ))}
                 </div>
               )}
-              <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>{message}</p>
+              {variant !== "map" && (
+                <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>{message}</p>
+              )}
             </div>
           ) : (
             <>
@@ -942,27 +938,7 @@ export default function Home() {
         <div className="absolute top-8 left-0 right-0 flex justify-center text-neutral-400 text-xs font-light w-full"><span>{view === 'main' ? "WASD / Arrows to explore • Enter to open • Esc to close" : "WASD / Arrows to explore • Enter to select • Esc to go back"}</span></div>
       )}
       
-      <div style={{ 
-        position: 'absolute', 
-        top: isMobile ? '12px' : 'auto', 
-        bottom: isMobile ? 'auto' : '24px', 
-        left: isMobile ? '50%' : '32px', 
-        transform: isMobile ? 'translateX(-50%)' : 'none', 
-        maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', 
-        overflowX: isMobile ? 'auto' : 'visible', 
-        zIndex: 9999, 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '12px', 
-        padding: '6px 12px', 
-        borderRadius: '6px', 
-        backgroundColor: 'rgba(255, 255, 255, 0.4)', 
-        backdropFilter: 'blur(10px)', 
-        border: '1px solid rgba(0, 0, 0, 0.05)', 
-        pointerEvents: 'none',
-        opacity: showModal ? 0 : 1,
-        transition: 'opacity 0.2s ease-in-out'
-      }}>
+      <div style={{ position: 'absolute', top: isMobile ? '12px' : 'auto', bottom: isMobile ? 'auto' : '24px', left: isMobile ? '50%' : '32px', transform: isMobile ? 'translateX(-50%)' : 'none', maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', overflowX: isMobile ? 'auto' : 'visible', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '6px', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0, 0, 0, 0.05)', pointerEvents: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 500, color: '#999' }}>
           <div style={{ position: 'relative', width: '16px', height: '16px', flexShrink: 0 }}>
             <img src="/icons/path/macintosh-hd.png" alt="Macintosh HD" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
