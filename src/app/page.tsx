@@ -293,14 +293,16 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   </span>
                 )}
                 <span style={{ fontSize: '13px', color: variant === "terminal" ? '#cfd2df' : '#666', fontWeight: 600 }}>
-                  {variant === "terminal" ? "daniellopez -- -zsh -- 80x24" : title}
+                  {variant === "terminal" ? "daniellopez -- -zsh -- 80x24" : variant === "map" ? "Maps" : title}
                 </span>
               </div>
               <div style={{ width: '18px', height: '18px', position: 'relative' }}>
-                {variant === "photos" || variant === "map" ? (
+                {variant === "map" ? (
+                  <Image src="/icons/maps-app.png" alt="Maps" fill style={{ objectFit: 'contain' }} />
+                ) : variant === "photos" ? (
                   <Image
-                    src={variant === "map" ? "/icons/aboutme/interests.png" : title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
-                    alt={title}
+                    src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
+                    alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
                     fill
                     style={{ objectFit: 'contain' }}
                   />
@@ -399,49 +401,43 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
           ) : variant === "photos" || variant === "map" ? (
             <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
               {variant === "map" ? (
-                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ width: '100%', height: isMobile ? '240px' : '320px', borderRadius: '16px', border: '1px solid #e5e5e5', backgroundColor: '#fcfcfc', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                    <Image
-                      src="/images/optimized/lima-map.png"
-                      alt="Map of Lima, Peru"
-                      fill
-                      priority
-                      style={{ objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ position: 'relative', width: '100%', height: isMobile ? 'calc(100vh - 120px)' : '420px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
+                  <Image
+                    src="/images/optimized/lima-map.png"
+                    alt="Map of Lima, Peru"
+                    fill
+                    priority
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <div style={{ 
+                    position: 'absolute', 
+                    bottom: '16px', 
+                    left: '16px', 
+                    right: '16px', 
+                    background: 'rgba(255, 255, 255, 0.7)', 
+                    backdropFilter: 'blur(20px) saturate(180%)', 
+                    border: '1px solid rgba(255, 255, 255, 0.35)', 
+                    borderRadius: '16px', 
+                    padding: '16px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '42px', height: '42px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f0f0f0' }}>
+                      <div style={{ width: '38px', height: '38px', position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)' }}>
                         <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
                       </div>
-                      <div>
-                        <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111' }}>{title}</h4>
-                        <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Capital City · Lima, Peru</p>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>{title}</h4>
+                        <p style={{ margin: 0, fontSize: '12px', color: '#555', fontWeight: 500 }}>Capital City · Lima, Peru</p>
                       </div>
                     </div>
-                    <div style={{ width: '100%', height: '1px', backgroundColor: '#f2f2f2', margin: '4px 0' }} />
-                    <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#333', fontWeight: 500 }}>
-                      I am originally from Lima, Peru 🇵🇪. <br />
-                      I speak fluent Spanish and take great pride in my heritage.
-                    </p>
-                    <button 
-                      onClick={onConfirm}
-                      style={{ 
-                        width: '100%', 
-                        marginTop: '8px', 
-                        padding: '14px', 
-                        borderRadius: '12px', 
-                        background: '#007aff', 
-                        color: '#fff', 
-                        fontSize: '15px', 
-                        fontWeight: 600, 
-                        border: 'none', 
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(0,122,255,0.25)' 
-                      }}
-                    >
-                      Done
-                    </button>
+                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I am Peruvian 🇵🇪</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I speak Spanish 🗣️</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>My family is from Lima ❤️</li>
+                    </ul>
                   </div>
                 </div>
               ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
@@ -971,7 +967,7 @@ export default function Home() {
               <span style={{ color: '#000', whiteSpace: 'nowrap' }}>{hoveredLabel}</span>
             </>
           )}
-          {showModal && activeModal && (
+          {showModal && activeModal && showModal !== 'Peruvian' && (
             <>
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
