@@ -60,7 +60,7 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
   </motion.div>
 );
 
-const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, gallery, notesWidth, variant = "default", confirmLabel = "Open", isMobile = false }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, title: string, message: string, icon: string, photo?: string, gallery?: string[], notesWidth?: number, variant?: "default" | "notes" | "terminal" | "photos" | "map", confirmLabel?: string, isMobile?: boolean }) => {
+const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, gallery, notesWidth, variant = "default", confirmLabel = "Open", isMobile = false }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, title: string, message: string, icon: string, photo?: string, gallery?: string[], notesWidth?: number, variant?: "default" | "notes" | "terminal" | "photos", confirmLabel?: string, isMobile?: boolean }) => {
   const noteLines = message.split("\n").filter((line) => line.trim().length > 0);
   const terminalLoadingText: Record<string, string> = {
     Python: "Collecting package metadata",
@@ -249,21 +249,19 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             width: '100%',
             maxWidth: isMobile
               ? 'calc(100vw - 16px)'
-              : variant === "terminal"
-                ? '1120px'
-                : variant === "map"
-                  ? '720px'
+              : variant === "notes"
+                ? `${notesWidth ?? 500}px`
+                : variant === "terminal"
+                  ? '1120px'
                   : variant === "photos"
                     ? '620px'
-                    : variant === "notes"
-                      ? `${notesWidth ?? 500}px`
-                      : '380px',
+                    : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
             backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
-            padding: variant === "notes" ? '24px' : (variant === "terminal" || variant === "photos" || variant === "map") ? '0' : '32px',
+            padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" ? '0' : '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -283,7 +281,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 <Image src="/icons/notes-symbol.png" alt="Notes" fill style={{ objectFit: 'contain' }} />
               </div>
             </div>
-          ) : (variant === "terminal" || variant === "photos" || variant === "map") ? (
+          ) : variant === "terminal" || variant === "photos" ? (
             <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
@@ -301,10 +299,10 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 </span>
               </div>
               <div style={{ width: '18px', height: '18px', position: 'relative' }}>
-                {(variant === "photos" || variant === "map") && (
+                {variant === "photos" && (
                   <Image
-                    src={variant === "map" ? icon : (title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png")}
-                    alt={title}
+                    src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
+                    alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
                     fill
                     style={{ objectFit: 'contain' }}
                   />
@@ -319,42 +317,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             </div>
           )}
 
-          {variant === "map" ? (
-            <div style={{ width: '100%', height: isMobile ? '460px' : '500px', position: 'relative', overflow: 'hidden', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px' }}>
-              <Image src={photo || ""} alt="Map" fill priority style={{ objectFit: 'cover' }} />
-              
-              {/* Glassy Floating Container at Bottom */}
-              <div style={{
-                position: 'absolute',
-                bottom: '16px',
-                left: '16px',
-                right: '16px',
-                padding: '20px',
-                backgroundColor: 'rgba(255, 255, 255, 0.65)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '18px',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 12px 32px -8px rgba(0,0,0,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px'
-              }}>
-                <div style={{ position: 'relative', width: '60px', height: '60px', flexShrink: 0, filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.1))' }}>
-                  <Image src={icon} alt="Maps Logo" fill style={{ objectFit: 'contain' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#007aff', marginBottom: '4px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Located In Lima, Peru</div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#111', marginBottom: '8px', letterSpacing: '-0.01em' }}>Daniel Lopez</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {message.split('\n').map((line, i) => (
-                      <span key={i} style={{ fontSize: '14px', color: '#333', fontWeight: 500 }}>{line}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : variant === "terminal" ? (
+          {variant === "terminal" ? (
             <div style={{ width: '100%', minHeight: isMobile ? '260px' : '360px', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '14px 14px' : '20px 24px', backgroundColor: '#151515', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', display: 'flex', flexDirection: 'column' }}>
               {title === "Claude Code" ? (
                 <pre style={{ margin: 0, color: '#f59e0b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '14px', lineHeight: 1.4, whiteSpace: 'pre' }}>{`daniellopez@Daniels-MacBook-Pro ~ % claude
@@ -618,7 +581,7 @@ const contactIcons = [
   { src: "/icons/contact/github.png", label: "GitHub", x: 1, y: 2 },
 ];
 
-const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos" | "map"; confirmLabel?: string }> = {
+const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos"; confirmLabel?: string }> = {
   X: { title: "Open X account?", message: "This will take you to @danrublop on X.com in a new tab.", icon: "/icons/contact/x.png", url: "https://x.com/danrublop" },
   LinkedIn: { title: "Open LinkedIn?", message: "Visit My profile on LinkedIn to connect or view my experiences.", icon: "/icons/contact/linkedin.png", url: "https://www.linkedin.com/in/daniel-lopez-009620276" },
   GitHub: { title: "Open GitHub?", message: "Check out My repositories and code contributions on GitHub.", icon: "/icons/contact/github.png", url: "https://github.com/danrublop" },
@@ -638,7 +601,7 @@ const modalData: Record<string, { title: string; message: string; icon: string; 
   "Dev @ Thriive AI": { title: "Thriive AI", message: "August 2025 - November 2025\nDeveloped software that converts prompts into polished explainer videos with AI-generated scenes, narration, avatars, and music.\nBuilt on Veo 3, DALL-E 3, HeyGen, and OpenAI TTS.", icon: "/icons/experience/applescript.png", photo: "/images/experience/thriive-stamp.svg", variant: "notes", confirmLabel: "Done" },
   "Child Care": { title: "The Hebrew Institute Of Riverdale, Bronx, NY", message: "Youth Leader, June 2021 - December 2024\nSpent every Saturday morning looking after young children while their parents attended Shabbat services.\nOrganized fundraisers and managed community events.", icon: "/icons/experience/job3.png", variant: "notes", confirmLabel: "Done" },
   Futbol: { title: "Futbol", message: "", icon: "/icons/aboutme/gaming.png", gallery: ["/images/optimized/futbol-4.jpg", "/images/optimized/futbol-3.jpg", "/images/optimized/futbol-1.jpg", "/images/optimized/futbol-2.jpg"], variant: "photos" },
-  Peruvian: { title: "Peruvian", message: "• I speak Spanish 🗣️\n• My family is from Lima ❤️", icon: "/icons/maps-symbol.png", photo: "/images/optimized/peru-map.png", variant: "map" },
+  Peruvian: { title: "Peruvian", message: "I am Peruvian 🇵🇪\nI speak Spanish 🗣️\nMy family is from Lima ❤️", icon: "/icons/aboutme/interests.png", notesWidth: 620, variant: "notes", confirmLabel: "Done" },
   Food: { title: "Food", message: "I love ceviche 🇵🇪\nFlan\nSushi", icon: "/icons/aboutme/cookies.png", notesWidth: 620, variant: "notes", confirmLabel: "Done" },
   Climbing: { title: "Climbing", message: "I just got into climbing\nV2 at the moment", icon: "/icons/aboutme/profile.png", photo: "/images/aboutme/climbing-stamp.svg", variant: "notes", confirmLabel: "Done" },
   Python: { title: "Python", message: "python3 -m pip install --upgrade pip", icon: "/icons/skills/icon1.png", variant: "terminal" },
