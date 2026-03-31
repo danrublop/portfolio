@@ -425,19 +425,14 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     gap: '8px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '38px', height: '38px', position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)' }}>
-                        <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
+                      <div style={{ width: '40px', height: '40px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '0.3px solid rgba(0,0,0,0.1)' }}>
+                        <Image src="/icons/maps-app.png" alt="Maps App" fill style={{ objectFit: 'contain' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>{title}</h4>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#555', fontWeight: 500 }}>Capital City · Lima, Peru</p>
+                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111' }}>{title}</h4>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#666', fontWeight: 500 }}>Capital City · Lima, Peru</p>
                       </div>
                     </div>
-                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I am Peruvian 🇵🇪</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I speak Spanish 🗣️</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>My family is from Lima ❤️</li>
-                    </ul>
                   </div>
                 </div>
               ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
