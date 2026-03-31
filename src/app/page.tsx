@@ -251,16 +251,18 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               ? 'calc(100vw - 16px)'
               : variant === "terminal"
                   ? '1120px'
-                  : variant === "photos" || variant === "map"
-                    ? '620px'
-                    : '380px',
+                  : variant === "map"
+                    ? '820px'
+                    : variant === "photos"
+                      ? '620px'
+                      : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
             backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
             padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" || variant === "map" ? '0' : '32px',
-            minHeight: variant === "map" ? (isMobile ? '480px' : '520px') : 'auto',
+            minHeight: variant === "map" ? (isMobile ? '480px' : '580px') : 'auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -404,7 +406,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
           ) : variant === "photos" || variant === "map" ? (
             <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: variant === "map" ? '0' : isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
               {variant === "map" ? (
-                <div style={{ position: 'relative', width: '100%', height: isMobile ? 'calc(100vh - 120px)' : '420px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', width: '100%', height: isMobile ? 'calc(100vh - 120px)' : '580px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
                   <Image
                     src="/images/optimized/lima-map.png"
                     alt="Map of Lima, Peru"
@@ -429,7 +431,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
                       <div style={{ width: '42px', height: '42px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
-                        <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
+                        <Image src="/icons/maps-app.png" alt="Maps icon" fill style={{ objectFit: 'contain', padding: '2px' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>Lima, Peru</h4>
