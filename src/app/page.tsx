@@ -253,15 +253,15 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 ? `${notesWidth ?? 500}px`
                 : variant === "terminal"
                   ? '1120px'
-                  : variant === "photos"
-                    ? '620px'
+                  : (variant === "photos" || variant === "map")
+                    ? '720px'
                     : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
             backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
-            padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" ? '0' : '32px',
+            padding: variant === "notes" ? '24px' : (variant === "terminal" || variant === "photos" || variant === "map") ? '0' : '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -281,7 +281,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 <Image src="/icons/notes-symbol.png" alt="Notes" fill style={{ objectFit: 'contain' }} />
               </div>
             </div>
-          ) : variant === "terminal" || variant === "photos" ? (
+          ) : (variant === "terminal" || variant === "photos" || variant === "map") ? (
             <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
@@ -299,10 +299,10 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 </span>
               </div>
               <div style={{ width: '18px', height: '18px', position: 'relative' }}>
-                {variant === "photos" && (
+                {(variant === "photos" || variant === "map") && (
                   <Image
-                    src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
-                    alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
+                    src={variant === "map" ? icon : (title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png")}
+                    alt={title}
                     fill
                     style={{ objectFit: 'contain' }}
                   />
@@ -318,16 +318,9 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
           )}
 
           {variant === "map" ? (
-            <div style={{ width: '100%', height: isMobile ? '420px' : '520px', position: 'relative', borderRadius: '22px', overflow: 'hidden' }}>
-              <Image src={photo || ""} alt="Map" fill style={{ objectFit: 'cover' }} />
+            <div style={{ width: '100%', height: isMobile ? '460px' : '520px', position: 'relative', overflow: 'hidden' }}>
+              <Image src={photo || ""} alt="Map" fill priority style={{ objectFit: 'cover' }} />
               
-              {/* Traffic Lights / Header Overlay */}
-              <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '8px', zIndex: 10 }}>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
-              </div>
-
               {/* Glassy Floating Container at Bottom */}
               <div style={{
                 position: 'absolute',
