@@ -60,7 +60,7 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
   </motion.div>
 );
 
-const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, gallery, notesWidth, variant = "default", confirmLabel = "Open", isMobile = false }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, title: string, message: string, icon: string, photo?: string, gallery?: string[], notesWidth?: number, variant?: "default" | "notes" | "terminal" | "photos", confirmLabel?: string, isMobile?: boolean }) => {
+const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, gallery, notesWidth, variant = "default", confirmLabel = "Open", isMobile = false }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, title: string, message: string, icon: string, photo?: string, gallery?: string[], notesWidth?: number, variant?: "default" | "notes" | "terminal" | "photos" | "map", confirmLabel?: string, isMobile?: boolean }) => {
   const noteLines = message.split("\n").filter((line) => line.trim().length > 0);
   const terminalLoadingText: Record<string, string> = {
     Python: "Collecting package metadata",
@@ -249,11 +249,9 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             width: '100%',
             maxWidth: isMobile
               ? 'calc(100vw - 16px)'
-              : variant === "notes"
-                ? `${notesWidth ?? 500}px`
-                : variant === "terminal"
+              : variant === "terminal"
                   ? '1120px'
-                  : variant === "photos"
+                  : variant === "photos" || variant === "map"
                     ? '620px'
                     : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
@@ -261,7 +259,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
-            padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" ? '0' : '32px',
+            padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" || variant === "map" ? '0' : '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -281,8 +279,8 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 <Image src="/icons/notes-symbol.png" alt="Notes" fill style={{ objectFit: 'contain' }} />
               </div>
             </div>
-          ) : variant === "terminal" || variant === "photos" ? (
-            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          ) : variant === "terminal" || variant === "photos" || variant === "map" ? (
+            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : variant === "map" ? '#ffffff' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : variant === "map" ? '1px solid #e5e5e5' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
@@ -299,14 +297,14 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 </span>
               </div>
               <div style={{ width: '18px', height: '18px', position: 'relative' }}>
-                {variant === "photos" && (
+                {variant === "photos" || variant === "map" ? (
                   <Image
-                    src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
-                    alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
+                    src={variant === "map" ? "/icons/aboutme/interests.png" : title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
+                    alt={title}
                     fill
                     style={{ objectFit: 'contain' }}
                   />
-                )}
+                ) : null}
               </div>
             </div>
           ) : (
@@ -398,9 +396,55 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                 </>
               )}
             </div>
-          ) : variant === "photos" ? (
+          ) : variant === "photos" || variant === "map" ? (
             <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
-              {title === "Photography" || (title !== "Creative Cloud" && gallery && gallery.length > 0) ? (
+              {variant === "map" ? (
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ width: '100%', height: isMobile ? '240px' : '320px', borderRadius: '16px', border: '1px solid #e5e5e5', backgroundColor: '#fcfcfc', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                    <Image
+                      src="/images/optimized/lima-map.png"
+                      alt="Map of Lima, Peru"
+                      fill
+                      priority
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '42px', height: '42px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #f0f0f0' }}>
+                        <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
+                      </div>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111' }}>{title}</h4>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Capital City · Lima, Peru</p>
+                      </div>
+                    </div>
+                    <div style={{ width: '100%', height: '1px', backgroundColor: '#f2f2f2', margin: '4px 0' }} />
+                    <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#333', fontWeight: 500 }}>
+                      I am originally from Lima, Peru 🇵🇪. <br />
+                      I speak fluent Spanish and take great pride in my heritage.
+                    </p>
+                    <button 
+                      onClick={onConfirm}
+                      style={{ 
+                        width: '100%', 
+                        marginTop: '8px', 
+                        padding: '14px', 
+                        borderRadius: '12px', 
+                        background: '#007aff', 
+                        color: '#fff', 
+                        fontSize: '15px', 
+                        fontWeight: 600, 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0,122,255,0.25)' 
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
                 <>
                   <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', transform: `scale(${photoZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
@@ -581,7 +625,7 @@ const contactIcons = [
   { src: "/icons/contact/github.png", label: "GitHub", x: 1, y: 2 },
 ];
 
-const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos"; confirmLabel?: string }> = {
+const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos" | "map"; confirmLabel?: string }> = {
   X: { title: "Open X account?", message: "This will take you to @danrublop on X.com in a new tab.", icon: "/icons/contact/x.png", url: "https://x.com/danrublop" },
   LinkedIn: { title: "Open LinkedIn?", message: "Visit My profile on LinkedIn to connect or view my experiences.", icon: "/icons/contact/linkedin.png", url: "https://www.linkedin.com/in/daniel-lopez-009620276" },
   GitHub: { title: "Open GitHub?", message: "Check out My repositories and code contributions on GitHub.", icon: "/icons/contact/github.png", url: "https://github.com/danrublop" },
@@ -601,7 +645,7 @@ const modalData: Record<string, { title: string; message: string; icon: string; 
   "Dev @ Thriive AI": { title: "Thriive AI", message: "August 2025 - November 2025\nDeveloped software that converts prompts into polished explainer videos with AI-generated scenes, narration, avatars, and music.\nBuilt on Veo 3, DALL-E 3, HeyGen, and OpenAI TTS.", icon: "/icons/experience/applescript.png", photo: "/images/experience/thriive-stamp.svg", variant: "notes", confirmLabel: "Done" },
   "Child Care": { title: "The Hebrew Institute Of Riverdale, Bronx, NY", message: "Youth Leader, June 2021 - December 2024\nSpent every Saturday morning looking after young children while their parents attended Shabbat services.\nOrganized fundraisers and managed community events.", icon: "/icons/experience/job3.png", variant: "notes", confirmLabel: "Done" },
   Futbol: { title: "Futbol", message: "", icon: "/icons/aboutme/gaming.png", gallery: ["/images/optimized/futbol-4.jpg", "/images/optimized/futbol-3.jpg", "/images/optimized/futbol-1.jpg", "/images/optimized/futbol-2.jpg"], variant: "photos" },
-  Peruvian: { title: "Peruvian", message: "I am Peruvian 🇵🇪\nI speak Spanish 🗣️\nMy family is from Lima ❤️", icon: "/icons/aboutme/interests.png", notesWidth: 620, variant: "notes", confirmLabel: "Done" },
+  Peruvian: { title: "Peruvian", message: "I am Peruvian 🇵🇪\nI speak Spanish 🗣️\nMy family is from Lima ❤️", icon: "/icons/aboutme/interests.png", variant: "map", confirmLabel: "Done" },
   Food: { title: "Food", message: "I love ceviche 🇵🇪\nFlan\nSushi", icon: "/icons/aboutme/cookies.png", notesWidth: 620, variant: "notes", confirmLabel: "Done" },
   Climbing: { title: "Climbing", message: "I just got into climbing\nV2 at the moment", icon: "/icons/aboutme/profile.png", photo: "/images/aboutme/climbing-stamp.svg", variant: "notes", confirmLabel: "Done" },
   Python: { title: "Python", message: "python3 -m pip install --upgrade pip", icon: "/icons/skills/icon1.png", variant: "terminal" },
