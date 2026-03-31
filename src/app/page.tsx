@@ -260,6 +260,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
             padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" || variant === "map" ? '0' : '32px',
+            minHeight: variant === "map" ? (isMobile ? '480px' : '520px') : 'auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -280,25 +281,27 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               </div>
             </div>
           ) : variant === "terminal" || variant === "photos" || variant === "map" ? (
-            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : variant === "map" ? '#ffffff' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : variant === "map" ? '1px solid #e5e5e5' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : variant === "map" ? '#ffffff' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : variant === "map" ? '1px solid #f2f2f2' : '1px solid #d9d9d9', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '8px', minWidth: '60px' }}>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
                 <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
                 <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
               </div>
-              <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', flex: 1 }}>
                 {variant === "terminal" && (
                   <span style={{ width: '16px', height: '16px', position: 'relative', display: 'inline-block' }}>
                     <Image src="/icons/terminal-symbol.png" alt="Terminal" fill style={{ objectFit: 'contain' }} />
                   </span>
                 )}
-                <span style={{ fontSize: '13px', color: variant === "terminal" ? '#cfd2df' : '#666', fontWeight: 600 }}>
+                <span style={{ fontSize: '13px', color: variant === "terminal" ? '#cfd2df' : '#666', fontWeight: 600, textAlign: 'center' }}>
                   {variant === "terminal" ? "daniellopez -- -zsh -- 80x24" : variant === "map" ? "Maps" : title}
                 </span>
               </div>
-              <div style={{ width: '18px', height: '18px', position: 'relative' }}>
+              <div style={{ width: '18px', height: '18px', position: 'relative', display: 'flex', justifyContent: 'flex-end', minWidth: '60px' }}>
                 {variant === "map" ? (
-                  <Image src="/icons/maps-app.png" alt="Maps" fill style={{ objectFit: 'contain' }} />
+                  <div style={{ position: 'relative', width: '18px', height: '18px' }}>
+                    <Image src="/icons/maps-app.png" alt="Maps" fill style={{ objectFit: 'contain' }} />
+                  </div>
                 ) : variant === "photos" ? (
                   <Image
                     src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
@@ -424,23 +427,24 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     flexDirection: 'column',
                     gap: '8px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '38px', height: '38px', position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                      <div style={{ width: '42px', height: '42px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
                         <Image src="/icons/aboutme/interests.png" alt="Peru icon" fill style={{ objectFit: 'cover' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>{title}</h4>
-                        <p style={{ margin: 0, fontSize: '12px', color: '#555', fontWeight: 500 }}>Capital City · Lima, Peru</p>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>Lima, Peru</h4>
+                        <p style={{ margin: 0, fontSize: '11px', color: '#666', fontWeight: 500 }}>Capital City · South America</p>
                       </div>
                     </div>
-                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I am Peruvian 🇵🇪</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>I speak Spanish 🗣️</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500, display: 'flex', alignItems: 'center' }}>My family is from Lima ❤️</li>
+                    <div style={{ width: '100%', height: '0.5px', backgroundColor: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
+                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• I am Peruvian 🇵🇪</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• I speak Spanish 🗣️</li>
+                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• My family is from Lima ❤️</li>
                     </ul>
                   </div>
                 </div>
-              ) : (variant === "photos" && (title === "Photography" || (gallery && gallery.length > 0))) ? (
+              ) : (variant === "photos" && (title === "Photography" || (gallery && (gallery.length ?? 0) > 0))) ? (
                 <>
                   <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', transform: `scale(${photoZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
