@@ -252,7 +252,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
               : variant === "terminal"
                   ? '1120px'
                   : variant === "map"
-                    ? '820px'
+                    ? '920px'
                     : variant === "photos"
                       ? '620px'
                       : '380px',
@@ -262,7 +262,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
             border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
             padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" || variant === "map" ? '0' : '32px',
-            minHeight: variant === "map" ? (isMobile ? '480px' : '580px') : 'auto',
+            minHeight: variant === "map" ? (isMobile ? '400px' : '440px') : 'auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -406,7 +406,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
           ) : variant === "photos" || variant === "map" ? (
             <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: variant === "map" ? '0' : isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
               {variant === "map" ? (
-                <div style={{ position: 'relative', width: '100%', height: isMobile ? 'calc(100vh - 120px)' : '580px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', width: '100%', height: isMobile ? '400px' : '440px', backgroundColor: '#fcfcfc', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', overflow: 'hidden' }}>
                   <Image
                     src="/images/optimized/lima-map.png"
                     alt="Map of Lima, Peru"
@@ -429,20 +429,20 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     flexDirection: 'column',
                     gap: '8px'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                      <div style={{ width: '42px', height: '42px', position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '0.5px solid rgba(0,0,0,0.1)', flexShrink: 0 }}>
-                        <Image src="/icons/maps-app.png" alt="Maps icon" fill style={{ objectFit: 'contain', padding: '2px' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                      <div style={{ width: '48px', height: '48px', position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }}>
+                        <Image src="/icons/maps-app.png" alt="Maps icon" fill style={{ objectFit: 'contain', padding: '4px' }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111' }}>Lima, Peru</h4>
-                        <p style={{ margin: 0, fontSize: '11px', color: '#666', fontWeight: 500 }}>Capital City · South America</p>
+                        <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Lima, Peru</h4>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#666', fontWeight: 500 }}>Capital City · South America</p>
                       </div>
                     </div>
-                    <div style={{ width: '100%', height: '0.5px', backgroundColor: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
-                    <ul style={{ margin: '4px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• I am Peruvian 🇵🇪</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• I speak Spanish 🗣️</li>
-                      <li style={{ fontSize: '13px', color: '#111', fontWeight: 500 }}>• My family is from Lima ❤️</li>
+                    <div style={{ width: '100%', height: '1px', backgroundColor: 'rgba(0,0,0,0.05)', margin: '6px 0' }} />
+                    <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap' }}>
+                      <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• I am Peruvian 🇵🇪</li>
+                      <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• I speak Spanish 🗣️</li>
+                      <li style={{ fontSize: '14px', color: '#111', fontWeight: 500 }}>• My family is from Lima ❤️</li>
                     </ul>
                   </div>
                 </div>
