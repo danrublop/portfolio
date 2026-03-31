@@ -17,9 +17,10 @@ type FolderProps = {
   transition?: Transition;
   isSelected?: boolean;
   compact?: boolean;
+  priority?: boolean;
 };
 
-const Folder = ({ src, label, onClick, onHover, className, initial, animate, exit, transition, isSelected, compact = false }: FolderProps) => (
+const Folder = ({ src, label, onClick, onHover, className, initial, animate, exit, transition, isSelected, compact = false, priority = false }: FolderProps) => (
   <motion.div
     className={`flex flex-col items-center justify-center cursor-pointer group outline-none ${className}`}
     initial={initial}
@@ -39,13 +40,14 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
   >
     <div className={`relative ${compact ? 'w-18 h-18' : 'w-22 h-22'} flex items-center justify-center transition-all duration-200 ${isSelected ? 'scale-110' : ''}`}>
       <div className={`relative ${compact ? 'w-16 h-16' : 'w-20 h-20'}`}>
-        <img
+        <Image
           src={src}
           alt={label}
           draggable={false}
+          fill
+          priority={priority}
+          sizes={compact ? '64px' : '80px'}
           style={{
-            width: "100%",
-            height: "100%",
             objectFit: "contain",
             filter: isSelected ? "drop-shadow(0 0 10px rgba(59, 130, 246, 0.9))" : "none"
           }}
@@ -778,16 +780,16 @@ export default function Home() {
       <AnimatePresence mode="wait">
         {view === "main" ? (
           <motion.div key="main" className={`relative flex items-center justify-center ${isMobile ? "w-full h-full" : "w-[600px] h-[600px]"}`} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={springTransition}>
-            <Folder src="/icons/center.png" label="Daniel Lopez" compact={isMobile} onClick={toggleOpen} onHover={setHoveredLabel} isSelected={hoveredLabel === "Daniel Lopez" || (!hoveredLabel && !isOpen)} className="z-50" />
+            <Folder src="/icons/center.png" label="Daniel Lopez" compact={isMobile} onClick={toggleOpen} onHover={setHoveredLabel} isSelected={hoveredLabel === "Daniel Lopez" || (!hoveredLabel && !isOpen)} className="z-50" priority />
             <AnimatePresence>
               {isOpen && (
                 <>
-                  <Folder src="/icons/education.png" label="Education" compact={isMobile} className="absolute" onClick={openEducation} onHover={setHoveredLabel} isSelected={hoveredLabel === "Education"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} />
-                  <Folder src="/icons/skills.png" label="Skills" compact={isMobile} className="absolute" onClick={openSkills} onHover={setHoveredLabel} isSelected={hoveredLabel === "Skills"} initial={{ y: -mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: -mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} />
-                  <Folder src="/icons/aboutme.png" label="About Me" compact={isMobile} className="absolute" onClick={openAboutMe} onHover={setHoveredLabel} isSelected={hoveredLabel === "About Me"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} />
-                  <Folder src="/icons/contact.png" label="Contact" compact={isMobile} className="absolute" onClick={openContact} onHover={setHoveredLabel} isSelected={hoveredLabel === "Contact"} initial={{ y: mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} />
-                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={openProjects} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} />
-                  <Folder src="/icons/experience.png" label="Experience" compact={isMobile} className="absolute" onClick={openExperience} onHover={setHoveredLabel} isSelected={hoveredLabel === "Experience"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} />
+                  <Folder src="/icons/education.png" label="Education" compact={isMobile} className="absolute" onClick={openEducation} onHover={setHoveredLabel} isSelected={hoveredLabel === "Education"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
+                  <Folder src="/icons/skills.png" label="Skills" compact={isMobile} className="absolute" onClick={openSkills} onHover={setHoveredLabel} isSelected={hoveredLabel === "Skills"} initial={{ y: -mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: -mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} priority />
+                  <Folder src="/icons/aboutme.png" label="About Me" compact={isMobile} className="absolute" onClick={openAboutMe} onHover={setHoveredLabel} isSelected={hoveredLabel === "About Me"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
+                  <Folder src="/icons/contact.png" label="Contact" compact={isMobile} className="absolute" onClick={openContact} onHover={setHoveredLabel} isSelected={hoveredLabel === "Contact"} initial={{ y: mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} priority />
+                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={openProjects} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
+                  <Folder src="/icons/experience.png" label="Experience" compact={isMobile} className="absolute" onClick={openExperience} onHover={setHoveredLabel} isSelected={hoveredLabel === "Experience"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
                 </>
               )}
             </AnimatePresence>
