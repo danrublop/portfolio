@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, TargetAndTransition, Transition } from "framer-motion";
 import Image from "next/image";
-import { ArrowBigLeft } from "lucide-react";
+import { ArrowBigLeft, Copy, Check } from "lucide-react";
+import EmailIcon3D from "./EmailIcon3D";
+import BrandIcon3D from "./BrandIcon3D";
 
 type FolderProps = {
   src: string;
@@ -60,7 +62,59 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
   </motion.div>
 );
 
-const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, gallery, notesWidth, variant = "default", confirmLabel = "Open", isMobile = false }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, title: string, message: string, icon: string, photo?: string, gallery?: string[], notesWidth?: number, variant?: "default" | "notes" | "terminal" | "photos", confirmLabel?: string, isMobile?: boolean }) => {
+const creativeCloudItems = [
+  { label: "Lightroom", src: "/images/optimized/cc-lr-folder.png" },
+  { label: "Premiere Pro", src: "/images/optimized/cc-pr-folder.png" },
+  { label: "Photoshop", src: "/images/optimized/cc-ps-folder.png" },
+];
+
+const photographyGallery = [
+  "/images/photography/dsc-9405.jpeg",
+  "/images/photography/dsc-9117.jpeg",
+  "/images/photography/dsc-8587.jpeg",
+  "/images/photography/dsc-7035.jpeg",
+  "/images/photography/dsc-8414.jpeg",
+  "/images/photography/dsc-8663.jpeg",
+  "/images/photography/dsc-9672.JPG",
+];
+
+const Modal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message, 
+  icon, 
+  photo, 
+  gallery, 
+  notesWidth, 
+  variant = "default", 
+  confirmLabel = "Open", 
+  isMobile = false,
+  activeCreativeLabel,
+  setActiveCreativeLabel,
+  activePhotoUrl,
+  setActivePhotoUrl,
+  onSwitchModal
+}: {
+  isOpen: boolean, 
+  onClose: () => void, 
+  onConfirm: () => void, 
+  title: string, 
+  message: string, 
+  icon: string, 
+  photo?: string, 
+  gallery?: string[], 
+  notesWidth?: number, 
+  variant?: "default" | "notes" | "terminal" | "photos" | "mail" | "about" | "projects-grid",
+  confirmLabel?: string,
+  isMobile?: boolean,
+  activeCreativeLabel?: string,
+  setActiveCreativeLabel?: (label: string) => void,
+  activePhotoUrl?: string,
+  setActivePhotoUrl?: (url: string) => void,
+  onSwitchModal?: (key: string) => void
+}) => {
   const noteLines = message.split("\n").filter((line) => line.trim().length > 0);
   const terminalLoadingText: Record<string, string> = {
     Python: "Collecting package metadata",
@@ -80,23 +134,13 @@ const Modal = ({ isOpen, onClose, onConfirm, title, message, icon, photo, galler
   const terminalOutput = `Last login: Thu Mar 26 12:39:20 on ttys023
 daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
 `;
-  const creativeCloudItems = [
-    { label: "Lightroom", src: "/images/optimized/cc-lr-folder.png" },
-    { label: "Premiere Pro", src: "/images/optimized/cc-pr-folder.png" },
-    { label: "Photoshop", src: "/images/optimized/cc-ps-folder.png" },
-  ];
-  const photographyGallery = [
-    "/images/photography/dsc-9405.jpeg",
-    "/images/photography/dsc-9117.jpeg",
-    "/images/photography/dsc-8587.jpeg",
-    "/images/photography/dsc-7035.jpeg",
-    "/images/photography/dsc-8414.jpeg",
-    "/images/photography/dsc-8663.jpeg",
-    "/images/photography/dsc-9672.JPG",
-  ];
-  const [activeCreativeItem, setActiveCreativeItem] = useState(creativeCloudItems[0]);
-  const [activePhoto, setActivePhoto] = useState(photographyGallery[0]);
+  
+  const activeCreativeItem = creativeCloudItems.find(i => i.label === activeCreativeLabel) || creativeCloudItems[0];
+  const activePhoto = activePhotoUrl || (gallery && gallery.length > 0 ? gallery[0] : (title === "Photography" ? photographyGallery[0] : photographyGallery[0]));
+
   const [photoZoom, setPhotoZoom] = useState(1);
+  const [hoveredInterest, setHoveredInterest] = useState<string | null>(null);
+  const [selectedProjectIdx, setSelectedProjectIdx] = useState(0);
   const logoAreaRef = useRef<HTMLDivElement | null>(null);
   const logoModelRef = useRef<HTMLDivElement | null>(null);
   const logoMotionRef = useRef({
@@ -108,20 +152,21 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
     velX: 0,
     velY: 0,
   });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (variant === "photos" && title === "Creative Cloud") {
-      setActiveCreativeItem(creativeCloudItems[0]);
+    if (variant === "photos" && title === "Creative Cloud" && setActiveCreativeLabel) {
+      setActiveCreativeLabel(creativeCloudItems[0].label);
     }
-    if (variant === "photos" && title === "Photography") {
-      setActivePhoto(photographyGallery[0]);
+    if (variant === "photos" && title === "Photography" && setActivePhotoUrl) {
+      setActivePhotoUrl(photographyGallery[0]);
       setPhotoZoom(1);
     }
-    if (variant === "photos" && title !== "Creative Cloud" && gallery && gallery.length > 0) {
-      setActivePhoto(gallery[0]);
+    if (variant === "photos" && title !== "Creative Cloud" && gallery && gallery.length > 0 && setActivePhotoUrl) {
+      setActivePhotoUrl(gallery[0]);
       setPhotoZoom(1);
     }
-  }, [variant, title, gallery]);
+  }, [variant, title, gallery, setActiveCreativeLabel, setActivePhotoUrl]);
 
   useEffect(() => {
     setPhotoZoom(1);
@@ -207,21 +252,21 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
     if (!isOpen || variant !== "photos") return;
 
     const handleGalleryArrows = (e: KeyboardEvent) => {
-      if (title !== "Creative Cloud" && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      if (title !== "Creative Cloud" && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key) && setActivePhotoUrl) {
         e.preventDefault();
         const currentGallery = title === "Photography" ? photographyGallery : (gallery && gallery.length > 0 ? gallery : photographyGallery);
         const currentIndex = currentGallery.indexOf(activePhoto);
         const delta = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1;
         const nextIndex = (currentIndex + delta + currentGallery.length) % currentGallery.length;
-        setActivePhoto(currentGallery[nextIndex]);
+        setActivePhotoUrl(currentGallery[nextIndex]);
       }
 
-      if (title === "Creative Cloud" && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      if (title === "Creative Cloud" && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key) && setActiveCreativeLabel) {
         e.preventDefault();
         const currentIndex = creativeCloudItems.findIndex((item) => item.label === activeCreativeItem.label);
         const delta = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1;
         const nextIndex = (currentIndex + delta + creativeCloudItems.length) % creativeCloudItems.length;
-        setActiveCreativeItem(creativeCloudItems[nextIndex]);
+        setActiveCreativeLabel(creativeCloudItems[nextIndex].label);
       }
     };
 
@@ -255,72 +300,160 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                   ? '1120px'
                   : variant === "photos"
                     ? '620px'
-                    : '380px',
+                    : variant === "mail"
+                      ? '680px'
+                      : variant === "about"
+                        ? '560px'
+                        : variant === "projects-grid"
+                          ? '720px'
+                          : '380px',
             maxHeight: isMobile ? 'calc(100vh - 24px)' : 'none',
-            backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : '#ffffff',
+            backgroundColor: variant === "notes" ? '#fff7d6' : variant === "terminal" ? '#1a1a1a' : variant === "projects-grid" ? 'rgba(255,255,255,0.55)' : '#ffffff',
+            backdropFilter: variant === "projects-grid" ? 'blur(40px) saturate(180%)' : undefined,
+            WebkitBackdropFilter: variant === "projects-grid" ? 'blur(40px) saturate(180%)' : undefined,
             borderRadius: '22px',
             boxShadow: '0 32px 64px -16px rgba(0,0,0,0.2)',
-            border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : '1px solid rgba(0,0,0,0.08)',
-            padding: variant === "notes" ? '24px' : variant === "terminal" || variant === "photos" ? '0' : '32px',
+            border: variant === "notes" ? '1px solid #e3d59d' : variant === "terminal" ? '1px solid #111' : variant === "projects-grid" ? '1px solid rgba(255,255,255,0.5)' : '1px solid rgba(0,0,0,0.08)',
+            padding: variant === "notes" ? '24px' : (variant === "terminal" || variant === "photos" || variant === "mail" || variant === "about" || variant === "projects-grid") ? '0' : '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            textAlign: variant === "notes" ? 'left' : variant === "terminal" ? 'left' : 'center',
+            textAlign: variant === "notes" ? 'left' : (variant === "terminal" || variant === "mail" || variant === "about" || variant === "projects-grid") ? 'left' : 'center',
             position: 'relative',
             overflow: isMobile ? 'hidden' : 'visible'
           }}
         >
-          {variant === "notes" ? (
-            <div style={{ width: 'calc(100% + 48px)', margin: '-24px -24px 16px -24px', backgroundColor: '#ffd95a', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: '1px solid #e3c44e', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+          {variant === "mail" ? (
+            <div style={{ width: '100%', minHeight: isMobile ? '400px' : '480px', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRadius: '22px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', background: '#f5f5f5', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e0e0e0', position: 'relative' }}>
+                <div style={{ display: 'flex', gap: '8px', zIndex: 10 }}>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+                </div>
+                <div style={{ position: 'absolute', left: '0', right: '0', textAlign: 'center', pointerEvents: 'none' }}>
+                  <span style={{ fontSize: '13px', color: '#333', fontWeight: 600 }}>New Message</span>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', zIndex: 10 }}>
+                   <div onClick={onConfirm} style={{ width: '22px', height: '22px', position: 'relative', cursor: 'pointer', opacity: 0.8 }} title="Send">
+                     <Image src="/icons/contact/email.png" alt="Send" fill style={{ objectFit: 'contain' }} />
+                   </div>
+                </div>
               </div>
-              <div style={{ width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.18))' }}>
-                <Image src="/icons/notes-symbol.png" alt="Notes" fill style={{ objectFit: 'contain' }} />
+              <div style={{ padding: '0 20px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0', display: 'flex', fontSize: '14px' }}>
+                  <span style={{ color: '#888', minWidth: '70px' }}>To:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#111', fontWeight: 500 }}>{photo || "daniel.lopez.3@stonybrook.edu"}</span>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(photo || "daniel.lopez.3@stonybrook.edu");
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      style={{ 
+                        border: 'none', 
+                        background: 'none', 
+                        padding: '4px', 
+                        cursor: 'pointer', 
+                        color: copied ? '#27c93f' : '#888',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '4px',
+                        transition: 'all 0.2s',
+                        backgroundColor: copied ? 'rgba(39, 201, 63, 0.1)' : 'transparent'
+                      }}
+                      title="Copy email"
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+                <div style={{ padding: '10px 0', borderBottom: '1px solid #f0f0f0', display: 'flex', fontSize: '14px' }}>
+                  <span style={{ color: '#888', minWidth: '70px' }}>From:</span>
+                  <span style={{ color: '#111' }}>you@example.com</span>
+                </div>
+                <div style={{ padding: '10px 0', display: 'flex', fontSize: '14px' }}>
+                  <span style={{ color: '#888', minWidth: '70px' }}>Subject:</span>
+                  <span style={{ color: '#111', fontWeight: 500 }}>Portfolio Inquiry</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, padding: '20px', fontSize: '15px', color: '#333', lineHeight: 1.5, outline: 'none' }} contentEditable={true} suppressContentEditableWarning={true}>
+                Greetings Daniel,<br/><br/>
+                I just explored your portfolio and I'm very impressed with your work. I would love to connect and discuss potential opportunities.<br/><br/>
+                Best regards,<br/>
+                [Your Name]
+              </div>
+            </div>
+          ) : variant === "notes" ? (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: 'calc(100% + 48px)', margin: '-24px -24px 16px -24px', backgroundColor: '#ffd95a', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: '1px solid #e3c44e', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+                </div>
+                <div style={{ width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.18))' }}>
+                  <Image src="/icons/notes-symbol.png" alt="Notes" fill style={{ objectFit: 'contain' }} />
+                </div>
+              </div>
+              <div style={{ width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <ul style={{ fontSize: '16px', color: '#333', lineHeight: 1.7, paddingLeft: '22px', fontWeight: 500, listStyleType: 'disc' }}>
+                    {noteLines.map((line, idx) => (
+                      line.startsWith("## ") ? (
+                        <li key={`${line}-${idx}`} style={{ listStyle: 'none', marginLeft: '-22px', marginTop: idx === 0 ? '0' : '10px', marginBottom: '2px', fontWeight: 700, color: '#111' }}>
+                          {line.replace("## ", "")}
+                        </li>
+                      ) : (
+                        <li key={`${line}-${idx}`} style={{ marginBottom: '4px' }}>{line}</li>
+                      )
+                    ))}
+                  </ul>
+                </div>
+                {photo && (
+                  <div style={{ position: 'relative', width: '106px', minWidth: '106px', height: '132px', backgroundColor: '#fff', border: '2px dashed #d9c46a', borderRadius: '8px', padding: '6px', boxShadow: '0 6px 16px rgba(0,0,0,0.15)', transform: 'rotate(6deg)' }}>
+                    <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '4px', overflow: 'hidden' }}>
+                      <Image src={photo} alt="school photo" fill style={{ objectFit: 'cover' }} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : variant === "terminal" || variant === "photos" ? (
-            <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
-                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
-              </div>
-              <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none' }}>
-                {variant === "terminal" && (
-                  <span style={{ width: '16px', height: '16px', position: 'relative', display: 'inline-block' }}>
-                    <Image src="/icons/terminal-symbol.png" alt="Terminal" fill style={{ objectFit: 'contain' }} />
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '100%', position: 'relative', background: variant === "terminal" ? '#262626' : '#efefef', borderTopLeftRadius: '22px', borderTopRightRadius: '22px', borderBottom: variant === "terminal" ? '1px solid #303030' : '1px solid #d9d9d9', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+                </div>
+                <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'none' }}>
+                  {variant === "terminal" && (
+                    <span style={{ width: '16px', height: '16px', position: 'relative', display: 'inline-block' }}>
+                      <Image src="/icons/terminal-symbol.png" alt="Terminal" fill style={{ objectFit: 'contain' }} />
+                    </span>
+                  )}
+                  <span style={{ fontSize: '13px', color: variant === "terminal" ? '#cfd2df' : '#666', fontWeight: 600 }}>
+                    {variant === "terminal" ? "daniellopez -- -zsh -- 80x24" : title}
                   </span>
-                )}
-                <span style={{ fontSize: '13px', color: variant === "terminal" ? '#cfd2df' : '#666', fontWeight: 600 }}>
-                  {variant === "terminal" ? "daniellopez -- -zsh -- 80x24" : title}
-                </span>
+                </div>
+                <div style={{ width: '18px', height: '18px', position: 'relative' }}>
+                  {variant === "photos" && (
+                    <Image
+                      src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
+                      alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
+                      fill
+                      style={{ objectFit: 'contain' }}
+                    />
+                  )}
+                </div>
               </div>
-              <div style={{ width: '18px', height: '18px', position: 'relative' }}>
-                {variant === "photos" && (
-                  <Image
-                    src={title === "Creative Cloud" ? "/icons/skills/creativecloud.png" : "/icons/photos-symbol.png"}
-                    alt={title === "Creative Cloud" ? "Creative Cloud" : "Photos"}
-                    fill
-                    style={{ objectFit: 'contain' }}
-                  />
-                )}
-              </div>
-            </div>
-          ) : (
-            <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '8px' }}>
-              <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
-              <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
-              <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
-            </div>
-          )}
-
-          {variant === "terminal" ? (
-            <div style={{ width: '100%', minHeight: isMobile ? '260px' : '360px', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '14px 14px' : '20px 24px', backgroundColor: '#151515', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', display: 'flex', flexDirection: 'column' }}>
-              {title === "Claude Code" ? (
-                <pre style={{ margin: 0, color: '#f59e0b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '14px', lineHeight: 1.4, whiteSpace: 'pre' }}>{`daniellopez@Daniels-MacBook-Pro ~ % claude
+              {variant === "terminal" ? (
+                <div style={{ width: '100%', minHeight: isMobile ? '260px' : '360px', padding: isMobile ? '14px' : '20px 24px', backgroundColor: '#151515', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', display: 'flex', flexDirection: 'column' }}>
+                  {title === "Claude Code" ? (
+                    <pre style={{ margin: 0, color: '#f59e0b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '14px', lineHeight: 1.4, whiteSpace: 'pre' }}>{`daniellopez@Daniels-MacBook-Pro ~ % claude
 ╭─── Claude Code v2.1.87 ─────────────────────────────────────────────────────────────╮
 │                                                    │ Tips for getting started       │
 │                Welcome back Daniel!                │ Run /init to create a CLAUDE.… │
@@ -337,177 +470,312 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
 ❯  
 ───────────────────────────────────────────────────────────────────────────────────────
   ? for shortcuts`}</pre>
-              ) : (
-                <>
-                  <pre style={{ margin: 0, color: '#e7e7ea', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '15px', lineHeight: 1.45, whiteSpace: 'pre' }}>{terminalOutput}</pre>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c9c9cd', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '15px' }}>
-                    <motion.span
-                      animate={{ opacity: [0.35, 1, 0.35] }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      ◐
-                    </motion.span>
-                    <span>{terminalLoadingText[title] || "Installing packages"}...</span>
-                  </div>
-                  {title === "Three.js" && (
+                  ) : (
                     <>
-                      <div
-                        ref={logoAreaRef}
-                        onDragStart={(e) => e.preventDefault()}
-                        style={{ marginTop: '12px', width: '100%', flex: 1, minHeight: '190px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: logoMotionRef.current.dragging ? 'grabbing' : 'grab', perspective: '900px', overflow: 'hidden', userSelect: 'none' }}
-                      >
-                        <div
-                          ref={logoModelRef}
-                          style={{
-                            position: 'relative',
-                            width: '120px',
-                            height: '120px',
-                            transformStyle: 'preserve-3d',
-                            transform: 'rotateX(-18deg) rotateY(24deg)',
-                            willChange: 'transform',
-                          }}
+                      <pre style={{ margin: 0, color: '#e7e7ea', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '15px', lineHeight: 1.45, whiteSpace: 'pre' }}>{terminalOutput}</pre>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#c9c9cd', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '15px' }}>
+                        <motion.span
+                          animate={{ opacity: [0.35, 1, 0.35] }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
                         >
-                          {Array.from({ length: 16 }).map((_, idx) => (
-                            <div key={idx} style={{ position: 'absolute', inset: 0, transform: `translateZ(${-10 + idx * 0.8}px)`, opacity: idx === 15 ? 1 : 0.2 }}>
-                              <Image draggable={false} src="/icons/apple-logo.svg" alt="3D Apple logo" fill style={{ objectFit: 'contain', pointerEvents: 'none', filter: `${idx === 15 ? 'drop-shadow(0 8px 12px rgba(0,0,0,0.45)) ' : ''}brightness(0) invert(1)` }} />
-                            </div>
-                          ))}
+                          ◐
+                        </motion.span>
+                        <span>{terminalLoadingText[title] || "Installing packages"}...</span>
+                      </div>
+                      {title === "Three.js" && (
+                        <div
+                          ref={logoAreaRef}
+                          onDragStart={(e) => e.preventDefault()}
+                          style={{ marginTop: '12px', width: '100%', flex: 1, minHeight: '190px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: logoMotionRef.current.dragging ? 'grabbing' : 'grab', perspective: '900px', overflow: 'hidden', userSelect: 'none' }}
+                        >
+                          <div
+                            ref={logoModelRef}
+                            style={{ position: 'relative', width: '120px', height: '120px', transformStyle: 'preserve-3d', transform: 'rotateX(-18deg) rotateY(24deg)', willChange: 'transform' }}
+                          >
+                            {Array.from({ length: 16 }).map((_, idx) => (
+                              <div key={idx} style={{ position: 'absolute', inset: 0, transform: `translateZ(${-10 + idx * 0.8}px)`, opacity: idx === 15 ? 1 : 0.2 }}>
+                                <Image draggable={false} src="/icons/apple-logo.svg" alt="3D Apple logo" fill style={{ objectFit: 'contain', pointerEvents: 'none', filter: `${idx === 15 ? 'drop-shadow(0 8px 12px rgba(0,0,0,0.45)) ' : ''}brightness(0) invert(1)` }} />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ marginTop: '8px', width: '100%', textAlign: 'center', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '12px', color: '#a1a1a8', letterSpacing: '0.02em' }}>
-                        Drag me
-                      </div>
+                      )}
                     </>
                   )}
-                  {title === "PostgreSQL" && (
-                    <div style={{ marginTop: '12px', width: '100%', borderRadius: '10px', border: '1px solid #2b2b2b', backgroundColor: '#101010', overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', borderBottom: '1px solid #252525', color: '#93c5fd', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '12px' }}>
-                        <span>postgres://localhost:5432/portfolio</span>
-                        <span style={{ color: '#86efac' }}>connected</span>
-                      </div>
-                      <div style={{ padding: '10px', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: '8px' }}>
-                        {["users", "projects", "experience", "skills", "education", "contact"].map((table) => (
-                          <div key={table} style={{ border: '1px solid #2a2a2a', borderRadius: '8px', padding: '8px', backgroundColor: '#151515' }}>
-                            <div style={{ color: '#e5e7eb', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '11px' }}>{table}</div>
-                            <div style={{ color: '#9ca3af', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '10px', marginTop: '4px' }}>rows: active</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ) : variant === "photos" ? (
-            <div style={{ width: '100%', maxHeight: isMobile ? 'calc(100vh - 120px)' : 'none', overflowY: isMobile ? 'auto' : 'visible', padding: isMobile ? '12px 12px 14px 12px' : '18px 18px 20px 18px', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px', backgroundColor: '#fff' }}>
-              {title === "Photography" || (title !== "Creative Cloud" && gallery && gallery.length > 0) ? (
-                <>
+                </div>
+              ) : (
+                <div style={{ width: '100%', padding: isMobile ? '16px' : '24px', backgroundColor: '#fff', borderBottomLeftRadius: '22px', borderBottomRightRadius: '22px' }}>
                   <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'relative', width: '100%', height: '100%', transform: `scale(${photoZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease' }}>
-                      <Image
-                        src={activePhoto}
-                        alt="Photography preview image"
-                        fill
-                        sizes={isMobile ? "90vw" : "620px"}
-                        style={{ objectFit: 'contain' }}
-                      />
-                    </div>
-                    <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.85)', border: '1px solid #e5e5e5', borderRadius: '8px', padding: '4px 6px' }}>
-                      <button onClick={() => setPhotoZoom((z) => Math.max(0.6, +(z - 0.1).toFixed(2)))} style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>-</button>
-                      <span style={{ minWidth: '44px', textAlign: 'center', fontSize: '11px', color: '#666', fontWeight: 600 }}>{Math.round(photoZoom * 100)}%</span>
-                      <button onClick={() => setPhotoZoom((z) => Math.min(3, +(z + 0.1).toFixed(2)))} style={{ width: '22px', height: '22px', borderRadius: '6px', border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>+</button>
+                      <Image src={activePhoto} alt={title} fill style={{ objectFit: 'contain' }} />
                     </div>
                   </div>
-                  <div style={{ width: '100%', marginTop: '12px', display: 'flex', gap: isMobile ? '8px' : '10px', overflowX: 'auto', paddingBottom: '2px' }}>
-                    {(title === "Photography" ? photographyGallery : (gallery && gallery.length > 0 ? gallery : photographyGallery)).map((src, idx) => (
-                      <button key={src} onClick={() => setActivePhoto(src)} style={{ minWidth: isMobile ? '82px' : '96px', border: activePhoto === src ? '1px solid #b9d7ff' : '1px solid #ececec', borderRadius: '10px', padding: isMobile ? '5px' : '6px', backgroundColor: activePhoto === src ? '#eef6ff' : '#fafafa', cursor: 'pointer' }}>
-                        <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: '7px', overflow: 'hidden' }}>
-                          <Image
-                            src={src}
-                            alt={`Photography thumbnail ${idx + 1}`}
-                            fill
-                            sizes="96px"
-                            loading="lazy"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div style={{ width: '100%', height: isMobile ? '190px' : '250px', borderRadius: '12px', border: '1px solid #e5e5e5', background: 'linear-gradient(180deg, #f9fafb, #f3f4f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'relative', width: isMobile ? '96px' : '120px', height: isMobile ? '96px' : '120px' }}>
-                    <Image
-                      src={title === "Creative Cloud" ? activeCreativeItem.src : icon}
-                      alt={title === "Creative Cloud" ? activeCreativeItem.label : title}
-                      fill
-                      sizes={isMobile ? "96px" : "120px"}
-                      style={{ objectFit: 'contain', filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.12))' }}
-                    />
-                  </div>
+                  {title === "Creative Cloud" && (
+                    <div style={{ width: '100%', marginTop: '12px', display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+                      {creativeCloudItems.map((item) => (
+                        <button key={item.label} onClick={() => setActiveCreativeLabel?.(item.label)} style={{ minWidth: '86px', border: activeCreativeItem.label === item.label ? '1px solid #b9d7ff' : '1px solid #ececec', borderRadius: '10px', padding: '8px', backgroundColor: activeCreativeItem.label === item.label ? '#eef6ff' : '#fafafa', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <div style={{ position: 'relative', width: '30px', height: '30px' }}>
+                            <Image src={item.src} alt={item.label} fill style={{ objectFit: 'contain' }} />
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#666' }}>{item.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>{message}</p>
                 </div>
               )}
-              {title === "Creative Cloud" && (
-                <div style={{ width: '100%', marginTop: '12px', display: 'flex', gap: isMobile ? '8px' : '10px', overflowX: 'auto', paddingBottom: '2px' }}>
-                  {creativeCloudItems.map((item) => (
-                    <button key={item.label} onClick={() => setActiveCreativeItem(item)} style={{ minWidth: isMobile ? '76px' : '86px', border: activeCreativeItem.label === item.label ? '1px solid #b9d7ff' : '1px solid #ececec', borderRadius: '10px', padding: isMobile ? '6px' : '8px', backgroundColor: activeCreativeItem.label === item.label ? '#eef6ff' : '#fafafa', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                      <div style={{ position: 'relative', width: isMobile ? '24px' : '30px', height: isMobile ? '24px' : '30px' }}>
-                        <Image
-                          src={item.src}
-                          alt={item.label}
-                          fill
-                          sizes="30px"
-                          loading="lazy"
-                          style={{ objectFit: 'contain' }}
-                        />
-                      </div>
-                      <span style={{ fontSize: '10px', color: '#666', textAlign: 'center', lineHeight: 1.2 }}>{item.label}</span>
-                    </button>
+            </div>
+          ) : variant === "about" ? (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRadius: '22px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', background: 'linear-gradient(180deg, #f6f6f8, #ececef)', padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #d9d9dc', position: 'relative' }}>
+                <div style={{ display: 'flex', gap: '8px', zIndex: 10 }}>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                  <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+                </div>
+                <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+                  <span style={{ fontSize: '13px', color: '#333', fontWeight: 600 }}>About Me</span>
+                </div>
+                <div style={{ width: '44px' }} />
+              </div>
+
+              <div style={{ padding: isMobile ? '20px' : '28px 32px 24px', display: 'flex', alignItems: 'center', gap: isMobile ? '14px' : '20px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ position: 'relative', width: isMobile ? '72px' : '88px', height: isMobile ? '72px' : '88px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 6px 18px rgba(0,0,0,0.12)' }}>
+                  <Image src="/icons/aboutme/danielpfp.png" alt="Daniel Lopez" fill style={{ objectFit: 'cover' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 700, color: '#111', margin: 0, letterSpacing: '-0.01em' }}>Daniel Lopez</h2>
+                  <span style={{ fontSize: '14px', color: '#555', lineHeight: 1.35 }}>Computer Science &amp; Data Science<br />Stony Brook University</span>
+                  <span style={{ fontSize: '13px', color: '#888' }}>Bronx, NY</span>
+                </div>
+              </div>
+
+              <div style={{ padding: isMobile ? '18px 20px' : '22px 32px', borderBottom: '1px solid #f0f0f0' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>About</h3>
+                <p style={{ fontSize: '14px', color: '#333', lineHeight: 1.55, margin: '0 0 10px' }}>
+                  Passionate about ML, diffusion models, and programmatic video generation.
+                  I build generative media tools and AI agents — the stuff I actually want to
+                  use.
+                </p>
+                <p style={{ fontSize: '13px', color: '#666', lineHeight: 1.6, margin: 0 }}>
+                  Machine Learning, Generative AI, Diffusion Models, Programmatic Video
+                  Generation, Text-to-Video, Text-to-Speech, Multimodal AI, Agent Orchestration,
+                  LLM Integration, Prompt Engineering, AI/ML Platforms, Creator Infrastructure,
+                  Generative Media APIs, Full-Stack Web Development, Next.js, React, Three.js,
+                  Python, TypeScript, Developer Experience (DX).
+                </p>
+              </div>
+
+              <div style={{ padding: isMobile ? '18px 20px 22px' : '22px 32px 28px' }}>
+                <h3 style={{ fontSize: '12px', fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 12px' }}>Interests</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { label: 'Futbol', emoji: '⚽', photo: '/images/optimized/futbol-1.jpg' },
+                    { label: 'Climbing', emoji: '🧗', photo: '/images/aboutme/climbing.png' },
+                    { label: 'Peruvian', emoji: '🇵🇪', photo: '/images/optimized/lima-map.png' },
+                    { label: 'Food', emoji: '🍜', photo: '/images/aboutme/food.png' },
+                    { label: 'Running', emoji: '🏃', photo: '/icons/aboutme/danielpfp.png' },
+                  ].map((it) => (
+                    <div
+                      key={it.label}
+                      onMouseEnter={() => setHoveredInterest(it.label)}
+                      onMouseLeave={() => setHoveredInterest((v) => v === it.label ? null : v)}
+                      style={{
+                        position: 'relative',
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '6px 12px',
+                        border: '1px solid #e6e6ea',
+                        borderRadius: '999px',
+                        background: hoveredInterest === it.label ? '#f3f6ff' : '#fafafa',
+                        borderColor: hoveredInterest === it.label ? '#cfdcff' : '#e6e6ea',
+                        fontSize: '13px',
+                        color: '#333',
+                        userSelect: 'none',
+                        transition: 'background 0.15s ease, border-color 0.15s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '14px', lineHeight: 1 }}>{it.emoji}</span>
+                      <span>{it.label}</span>
+                      <AnimatePresence>
+                        {hoveredInterest === it.label && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              bottom: 'calc(100% + 10px)',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              pointerEvents: 'none',
+                              zIndex: 5,
+                            }}
+                          >
+                            <motion.div
+                              initial={{ opacity: 0, y: 6, scale: 0.92 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 6, scale: 0.92 }}
+                              transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+                              style={{
+                                width: '140px',
+                                height: '140px',
+                                borderRadius: '14px',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(0,0,0,0.08)',
+                                boxShadow: '0 12px 28px rgba(0,0,0,0.18)',
+                                background: '#fff',
+                                position: 'relative',
+                              }}
+                            >
+                              <Image src={it.photo} alt={it.label} fill sizes="140px" style={{ objectFit: 'cover' }} />
+                            </motion.div>
+                          </div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   ))}
                 </div>
-              )}
-              <p style={{ fontSize: '13px', color: '#666', marginTop: '10px' }}>{message}</p>
+              </div>
             </div>
-          ) : (
-            <>
-              <div style={{ position: 'relative', width: variant === "notes" ? '58px' : '80px', height: variant === "notes" ? '58px' : '80px', marginBottom: variant === "notes" ? '12px' : '24px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.1))' }}>
+          ) : variant === "projects-grid" ? (() => {
+            const projects = [
+              {
+                label: 'Prompt2Video',
+                preview: '/icons/projects/project3.png',
+                tagline: 'Agentic video editor',
+                description: 'Turns text prompts into polished explainer videos with AI-generated scenes, narration, avatars, and background music. Orchestrates Veo 3, DALL·E 3, HeyGen avatars, and OpenAI TTS into a single shipping pipeline.',
+                stack: ['Next.js', 'TypeScript', 'OpenAI', 'Veo 3', 'HeyGen'],
+                url: 'https://github.com/danrublop/Agentic-video-editor-web-based',
+              },
+              {
+                label: 'Ecommerce',
+                preview: '/icons/projects/project2.png',
+                tagline: 'Modern storefront',
+                description: 'A modern e-commerce storefront with a curated catalog, smooth checkout, and animated product cards. Built to feel snappy on mobile and crisp on desktop.',
+                stack: ['Next.js', 'TypeScript', 'Tailwind', 'Vercel'],
+                url: 'https://harvell-ml18.vercel.app/',
+              },
+              {
+                label: 'Point of Sale',
+                preview: '/icons/projects/project1.png',
+                tagline: 'Swftly POS',
+                description: 'A point-of-sale platform built for small businesses. Inventory tracking, fast tap-to-pay checkout, and a dashboard that surfaces the numbers that actually matter.',
+                stack: ['React', 'Node.js', 'PostgreSQL'],
+                url: 'https://www.swftly.app/',
+              },
+              {
+                label: 'Code Assistant',
+                preview: '/icons/projects/terminal.png',
+                tagline: 'Plain-English coding',
+                description: "A natural-language code translator that converts what you want into working code across multiple languages — a friendly buddy for anyone who says they can't code.",
+                stack: ['Python', 'OpenAI', 'CLI'],
+                url: 'https://github.com/danrublop/I-can-t-code-translator',
+              },
+            ];
+            const safeIdx = Math.max(0, Math.min(selectedProjectIdx, projects.length - 1));
+            const active = projects[safeIdx];
+            return (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', borderRadius: '22px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', background: 'rgba(245,245,247,0.55)', padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.08)', position: 'relative', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+                  <div style={{ display: 'flex', gap: '8px', zIndex: 10 }}>
+                    <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                    <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+                  </div>
+                  <div style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+                    <span style={{ fontSize: '13px', color: '#222', fontWeight: 600 }}>Projects</span>
+                  </div>
+                  <div style={{ width: '44px' }} />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '16px' : '24px', padding: isMobile ? '20px' : '28px', alignItems: 'stretch' }}>
+                  <div style={{ flex: isMobile ? 'none' : '0 0 280px', position: 'relative', width: isMobile ? '100%' : '280px', aspectRatio: isMobile ? '16 / 10' : '1 / 1', borderRadius: '14px', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(245,245,250,0.95), rgba(225,225,235,0.95))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(0,0,0,0.06)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)' }}>
+                    <motion.div
+                      key={active.label}
+                      initial={{ opacity: 0, scale: 0.92, y: 6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+                      style={{ position: 'relative', width: '70%', height: '70%' }}
+                    >
+                      <Image src={active.preview} alt={active.label} fill style={{ objectFit: 'contain', filter: 'drop-shadow(0 16px 24px rgba(0,0,0,0.22))' }} />
+                    </motion.div>
+                  </div>
+
+                  <motion.div
+                    key={`info-${active.label}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.22 }}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}
+                  >
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{active.tagline}</span>
+                    <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 700, color: '#111', margin: 0, letterSpacing: '-0.01em' }}>{active.label}</h3>
+                    <p style={{ fontSize: '14px', color: '#333', lineHeight: 1.55, margin: 0 }}>{active.description}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                      {active.stack.map((tech) => (
+                        <span key={tech} style={{ fontSize: '11px', color: '#555', padding: '3px 8px', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '999px', background: 'rgba(255,255,255,0.6)' }}>{tech}</span>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+                      <button
+                        onClick={() => { window.open(active.url, '_blank'); }}
+                        style={{ padding: '10px 18px', fontSize: '13px', fontWeight: 600, color: '#fff', backgroundColor: '#007aff', border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,122,255,0.3)' }}
+                      >
+                        Open →
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', background: 'rgba(245,245,247,0.55)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: isMobile ? '14px 12px' : '16px 18px' }}>
+                  <div style={{ display: 'flex', gap: isMobile ? '8px' : '14px', overflowX: 'auto', paddingBottom: '2px' }}>
+                    {projects.map((p, idx) => {
+                      const isActive = idx === safeIdx;
+                      return (
+                        <button
+                          key={p.label}
+                          onClick={() => setSelectedProjectIdx(idx)}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                            padding: '8px 10px',
+                            minWidth: isMobile ? '74px' : '92px',
+                            border: 'none',
+                            borderRadius: '12px',
+                            background: isActive ? 'rgba(0,122,255,0.12)' : 'transparent',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease, transform 0.15s ease',
+                            flexShrink: 0,
+                          }}
+                          onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
+                          onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <div style={{ position: 'relative', width: isMobile ? '52px' : '62px', height: isMobile ? '52px' : '62px', borderRadius: '10px', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(245,245,250,0.95), rgba(225,225,235,0.95))', border: isActive ? '1.5px solid #007aff' : '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isActive ? '0 4px 12px rgba(0,122,255,0.18)' : '0 2px 6px rgba(0,0,0,0.06)' }}>
+                            <div style={{ position: 'relative', width: '70%', height: '70%' }}>
+                              <Image src={p.preview} alt={p.label} fill style={{ objectFit: 'contain' }} />
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '11px', fontWeight: isActive ? 600 : 500, color: isActive ? '#007aff' : '#444', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: isMobile ? '70px' : '90px' }}>{p.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })() : (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '8px' }}>
+                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57', border: '0.5px solid #e0443e', cursor: 'pointer' }}></div>
+                <div onClick={onClose} style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e', border: '0.5px solid #dea123', cursor: 'pointer' }}></div>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#27c93f', border: '0.5px solid #1aab29' }}></div>
+              </div>
+              <div style={{ position: 'relative', width: '80px', height: '80px', marginBottom: '24px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.1))' }}>
                 <Image src={icon} alt="icon" fill style={{ objectFit: 'contain' }} />
               </div>
-              <h3 style={{ width: '100%', fontSize: variant === "notes" ? '24px' : '20px', fontWeight: 700, color: '#000', marginBottom: variant === "notes" ? '12px' : '8px', letterSpacing: '-0.02em' }}>{title}</h3>
-              {variant === "notes" ? (
-            <div style={{ width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ flex: 1 }}>
-                <ul style={{ fontSize: '16px', color: '#333', lineHeight: 1.7, paddingLeft: '22px', fontWeight: 500, listStyleType: 'disc' }}>
-                  {noteLines.map((line, idx) => (
-                    line.startsWith("## ") ? (
-                      <li key={`${line}-${idx}`} style={{ listStyle: 'none', marginLeft: '-22px', marginTop: idx === 0 ? '0' : '10px', marginBottom: '2px', fontWeight: 700, color: '#111' }}>
-                        {line.replace("## ", "")}
-                      </li>
-                    ) : (
-                      <li key={`${line}-${idx}`} style={{ marginBottom: '4px' }}>{line}</li>
-                    )
-                  ))}
-                </ul>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#000', marginBottom: '8px' }}>{title}</h3>
+              <p style={{ fontSize: '14px', color: '#333', marginBottom: '24px', lineHeight: 1.5, textAlign: 'center' }}>{message}</p>
+              <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                <button onClick={onClose} style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 600, color: '#666', backgroundColor: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '14px', cursor: 'pointer' }}>Cancel</button>
+                <button onClick={onConfirm} style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 600, color: '#fff', backgroundColor: '#007aff', border: 'none', borderRadius: '14px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,122,255,0.3)' }}>{confirmLabel}</button>
               </div>
-              {photo && (
-                <div style={{ position: 'relative', width: '106px', minWidth: '106px', height: '132px', backgroundColor: '#fff', border: '2px dashed #d9c46a', borderRadius: '8px', padding: '6px', boxShadow: '0 6px 16px rgba(0,0,0,0.15)', transform: 'rotate(6deg)' }}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '4px', overflow: 'hidden' }}>
-                    <Image src={photo} alt="school photo" fill style={{ objectFit: 'cover' }} />
-                  </div>
-                </div>
-              )}
-            </div>
-              ) : (
-                <p style={{ width: '100%', fontSize: '14px', color: '#333', marginBottom: '24px', lineHeight: 1.5, padding: '0 10px', fontWeight: 500, whiteSpace: 'pre-line' }}>{message}</p>
-              )}
-            </>
-          )}
-          
-          {variant === "default" && (
-            <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
-              <button onClick={onClose} style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 600, color: '#666', backgroundColor: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '14px', cursor: 'pointer', transition: 'all 0.2s' }}>Cancel</button>
-              <button onClick={onConfirm} style={{ flex: 1, padding: '12px', fontSize: '14px', fontWeight: 600, color: '#fff', backgroundColor: '#007aff', border: 'none', borderRadius: '14px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,122,255,0.3)', transition: 'all 0.2s' }}>{confirmLabel}</button>
             </div>
           )}
         </motion.div>
@@ -581,11 +849,13 @@ const contactIcons = [
   { src: "/icons/contact/github.png", label: "GitHub", x: 1, y: 2 },
 ];
 
-const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos"; confirmLabel?: string }> = {
+const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos" | "mail" | "about" | "projects-grid"; confirmLabel?: string }> = {
+  AboutMe: { title: "About Me", message: "", icon: "/icons/aboutme/profile.png", variant: "about" },
+  ProjectsGrid: { title: "Projects", message: "", icon: "/icons/projects.png", variant: "projects-grid" },
   X: { title: "Open X account?", message: "This will take you to @danrublop on X.com in a new tab.", icon: "/icons/contact/x.png", url: "https://x.com/danrublop" },
   LinkedIn: { title: "Open LinkedIn?", message: "Visit My profile on LinkedIn to connect or view my experiences.", icon: "/icons/contact/linkedin.png", url: "https://www.linkedin.com/in/daniel-lopez-009620276" },
   GitHub: { title: "Open GitHub?", message: "Check out My repositories and code contributions on GitHub.", icon: "/icons/contact/github.png", url: "https://github.com/danrublop" },
-  Email: { title: "Draft an Email?", message: "This will open your default email client to message daniel.lopez.3@stonybrook.edu.", icon: "/icons/contact/email.png", url: "mailto:daniel.lopez.3@stonybrook.edu" },
+  Email: { title: "Draft an Email?", message: "This will open your default email client to message daniel.lopez.3@stonybrook.edu.", icon: "/icons/contact/email.png", url: "mailto:daniel.lopez.3@stonybrook.edu", variant: "mail" },
   Prompt2Video: { title: "Open Prompt2Video?", message: "Open the Agentic Video Editor repository on GitHub in a new tab.", icon: "/icons/projects/project3.png", url: "https://github.com/danrublop/Agentic-video-editor-web-based" },
   "Code Assistant": { title: "Open Code Assistant?", message: "Open the Code Assistant repository on GitHub in a new tab.", icon: "/icons/projects/terminal.png", url: "https://github.com/danrublop/I-can-t-code-translator" },
   "Point of Sale": { title: "Open Point of Sale?", message: "Open the Swftly website in a new tab.", icon: "/icons/projects/project1.png", url: "https://www.swftly.app/" },
@@ -627,6 +897,9 @@ export default function Home() {
   const [showModal, setShowModal] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [activeCreativeLabel, setActiveCreativeLabel] = useState(creativeCloudItems[0].label);
+  const [activePhotoUrl, setActivePhotoUrl] = useState(photographyGallery[0]);
+  const [socialsOpen, setSocialsOpen] = useState(false);
 
   const toggleOpen = () => { if (view !== "main") { setView("main"); setIsOpen(true); } else { setIsOpen(!isOpen); } };
   const openSkills = () => { setView("skills"); setHoveredLabel(null); };
@@ -689,12 +962,10 @@ export default function Home() {
           const label = hoveredLabel;
           if (view === 'main') {
             if (label === 'Daniel Lopez') toggleOpen();
-            else if (['Skills', 'Experience', 'Projects', 'About Me', 'Contact', 'Education'].includes(label)) {
+            else if (['Skills', 'Experience', 'Projects', 'Education'].includes(label)) {
               if (label === 'Skills') openSkills();
               else if (label === 'Experience') openExperience();
-              else if (label === 'Projects') openProjects();
-              else if (label === 'About Me') openAboutMe();
-              else if (label === 'Contact') openContact();
+              else if (label === 'Projects') setShowModal('ProjectsGrid');
               else if (label === 'Education') openEducation();
             }
           } else if (modalData[label]) {
@@ -715,7 +986,7 @@ export default function Home() {
           return [
             { label: 'Daniel Lopez', x: 0, y: 0 },
             ...(isOpen ? [
-              { label: 'Education', x: 0, y: -1 }, { label: 'Skills', x: 0, y: -2 }, { label: 'About Me', x: 0, y: 1 }, { label: 'Contact', x: 0, y: 2 }, { label: 'Projects', x: -1, y: 0 }, { label: 'Experience', x: 1, y: 0 }
+              { label: 'Skills', x: 0, y: -1 }, { label: 'Education', x: 0, y: 1 }, { label: 'Projects', x: -1, y: 0 }, { label: 'Experience', x: 1, y: 0 }
             ] : [])
           ];
         }
@@ -777,6 +1048,90 @@ export default function Home() {
 
   return (
     <main className="relative flex items-center justify-center w-full h-screen overflow-hidden bg-white">
+      <div
+        style={{
+          position: 'absolute',
+          top: isMobile ? '52px' : '20px',
+          left: isMobile ? '12px' : '20px',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}
+      >
+        <div
+          onClick={() => setShowModal('AboutMe')}
+          style={{
+            width: isMobile ? '40px' : '48px',
+            height: isMobile ? '40px' : '48px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            border: '1.5px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+            background: '#fff',
+            flexShrink: 0,
+            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.06)';
+            e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.18)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+          }}
+          aria-label="About Me"
+          role="button"
+        >
+          <Image
+            src="/icons/aboutme/danielpfp.png"
+            alt="Daniel Lopez"
+            width={isMobile ? 40 : 48}
+            height={isMobile ? 40 : 48}
+            draggable={false}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            priority
+          />
+        </div>
+        <EmailIcon3D
+          size={isMobile ? 44 : 56}
+          onClick={() => setSocialsOpen((v) => !v)}
+        />
+        <AnimatePresence>
+          {socialsOpen && (
+            <motion.div
+              key="social-tray"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.18 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              {([
+                { brand: 'x' as const, modal: 'X' },
+                { brand: 'github' as const, modal: 'GitHub' },
+                { brand: 'linkedin' as const, modal: 'LinkedIn' },
+              ]).map((it, idx) => (
+                <motion.div
+                  key={it.brand}
+                  initial={{ opacity: 0, scale: 0.4, x: -16 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.4, x: -16 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 22, delay: idx * 0.06 }}
+                >
+                  <BrandIcon3D
+                    brand={it.brand}
+                    size={isMobile ? 40 : 52}
+                    onClick={() => setShowModal(it.modal)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       <AnimatePresence mode="wait">
         {view === "main" ? (
           <motion.div key="main" className={`relative flex items-center justify-center ${isMobile ? "w-full h-full" : "w-[600px] h-[600px]"}`} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={springTransition}>
@@ -784,11 +1139,9 @@ export default function Home() {
             <AnimatePresence>
               {isOpen && (
                 <>
-                  <Folder src="/icons/education.png" label="Education" compact={isMobile} className="absolute" onClick={openEducation} onHover={setHoveredLabel} isSelected={hoveredLabel === "Education"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
-                  <Folder src="/icons/skills.png" label="Skills" compact={isMobile} className="absolute" onClick={openSkills} onHover={setHoveredLabel} isSelected={hoveredLabel === "Skills"} initial={{ y: -mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: -mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} priority />
-                  <Folder src="/icons/aboutme.png" label="About Me" compact={isMobile} className="absolute" onClick={openAboutMe} onHover={setHoveredLabel} isSelected={hoveredLabel === "About Me"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
-                  <Folder src="/icons/contact.png" label="Contact" compact={isMobile} className="absolute" onClick={openContact} onHover={setHoveredLabel} isSelected={hoveredLabel === "Contact"} initial={{ y: mainOffsetY, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY * 2, opacity: 1, scale: 1 }} exit={{ y: mainOffsetY, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.1 }} priority />
-                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={openProjects} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
+                  <Folder src="/icons/skills.png" label="Skills" compact={isMobile} className="absolute" onClick={openSkills} onHover={setHoveredLabel} isSelected={hoveredLabel === "Skills"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
+                  <Folder src="/icons/education.png" label="Education" compact={isMobile} className="absolute" onClick={openEducation} onHover={setHoveredLabel} isSelected={hoveredLabel === "Education"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
+                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={() => setShowModal('ProjectsGrid')} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
                   <Folder src="/icons/experience.png" label="Experience" compact={isMobile} className="absolute" onClick={openExperience} onHover={setHoveredLabel} isSelected={hoveredLabel === "Experience"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
                 </>
               )}
@@ -889,6 +1242,11 @@ export default function Home() {
           variant={modalData[showModal].variant}
           confirmLabel={modalData[showModal].confirmLabel ?? "Open"}
           isMobile={isMobile}
+          activeCreativeLabel={activeCreativeLabel}
+          setActiveCreativeLabel={setActiveCreativeLabel}
+          activePhotoUrl={activePhotoUrl}
+          setActivePhotoUrl={setActivePhotoUrl}
+          onSwitchModal={(key) => setShowModal(key)}
         />
       )}
 
@@ -931,13 +1289,27 @@ export default function Home() {
             <>
               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {activeModal.variant === 'notes' ? (
-                  <img src="/icons/notes-symbol.png" width={14} height={14} alt="Notes" draggable={false} />
-                ) : (
-                  <img src={activeModal.icon} width={14} height={14} alt={showModal} draggable={false} />
-                )}
+                <img src={activeModal.icon} width={14} height={14} alt={showModal} draggable={false} />
               </div>
-              <span style={{ color: '#000', whiteSpace: 'nowrap' }}>{showModal}</span>
+              <span style={{ color: activeModal.variant && activeModal.variant !== 'default' ? '#999' : '#000', whiteSpace: 'nowrap' }}>{showModal}</span>
+              {activeModal.variant && activeModal.variant !== 'default' && (
+                <>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img 
+                      src={
+                        showModal === 'Creative Cloud' 
+                          ? (creativeCloudItems.find(i => i.label === activeCreativeLabel)?.src || "/icons/skills/creativecloud.png")
+                          : (activeModal.variant === 'notes' ? "/icons/notes-symbol.png" : activeModal.variant === 'terminal' ? "/icons/terminal-symbol.png" : activeModal.variant === 'photos' ? "/icons/photos-symbol.png" : activeModal.variant === 'mail' ? "/icons/contact/email.png" : activeModal.icon)
+                      } 
+                      width={14} height={14} alt={activeModal.variant || ""} draggable={false} 
+                    />
+                  </div>
+                  <span style={{ color: '#000', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>
+                    {showModal === 'Creative Cloud' ? activeCreativeLabel : activeModal.variant === 'mail' ? 'New Message' : activeModal.variant}
+                  </span>
+                </>
+              )}
             </>
           )}
         </div>
