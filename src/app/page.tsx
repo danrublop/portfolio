@@ -823,7 +823,7 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
                     </div>
                     <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
                       <button
-                        onClick={() => { window.open(active.url, '_blank'); }}
+                        onClick={() => { window.open(active.url, '_blank', 'noopener,noreferrer'); }}
                         style={{ padding: '10px 18px', fontSize: '13px', fontWeight: 600, color: '#fff', backgroundColor: '#007aff', border: 'none', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,122,255,0.3)' }}
                       >
                         Open →
@@ -1221,7 +1221,7 @@ export default function Home() {
       if (key === 'enter') {
         if (showModal && modalData[showModal]) {
           const targetUrl = modalData[showModal].url;
-          if (targetUrl) window.open(targetUrl, "_blank");
+          if (targetUrl) window.open(targetUrl, "_blank", "noopener,noreferrer");
           setShowModal(null);
           return;
         }
@@ -1258,7 +1258,7 @@ export default function Home() {
             ] : [])
           ];
         }
-        let items: any[] = [];
+        let items: { label: string; x: number; y: number }[] = [];
         let hubLabel = "", hubPos = { x: 1, y: 1 };
         if (view === 'skills') { items = skillIcons; hubLabel = "Skills"; hubPos = { x: 2, y: 1 }; }
         else if (view === 'experience' || view === 'projects' || view === 'education') { return []; }
@@ -1636,7 +1636,7 @@ export default function Home() {
           onClose={() => setShowModal(null)} 
           onConfirm={() => {
             const targetUrl = modalData[showModal].url;
-            if (targetUrl) window.open(targetUrl, "_blank");
+            if (targetUrl) window.open(targetUrl, "_blank", "noopener,noreferrer");
             setShowModal(null);
           }} 
           title={modalData[showModal].title} 
