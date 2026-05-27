@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, TargetAndTransition, Transition } from "framer-motion";
+import { motion, AnimatePresence, TargetAndTransition, Transition, useMotionValue, useTransform, useAnimationFrame } from "framer-motion";
 import Image from "next/image";
-import { ArrowBigLeft, Copy, Check } from "lucide-react";
-import EmailIcon3D from "./EmailIcon3D";
-import BrandIcon3D from "./BrandIcon3D";
+import { Copy, Check } from "lucide-react";
 
 type FolderProps = {
   src: string;
@@ -20,9 +18,10 @@ type FolderProps = {
   isSelected?: boolean;
   compact?: boolean;
   priority?: boolean;
+  hideLabel?: boolean;
 };
 
-const Folder = ({ src, label, onClick, onHover, className, initial, animate, exit, transition, isSelected, compact = false, priority = false }: FolderProps) => (
+const Folder = ({ src, label, onClick, onHover, className, initial, animate, exit, transition, isSelected, compact = false, priority = false, hideLabel = false }: FolderProps) => (
   <motion.div
     className={`flex flex-col items-center justify-center cursor-pointer group outline-none ${className}`}
     initial={initial}
@@ -48,6 +47,7 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
           draggable={false}
           fill
           priority={priority}
+          unoptimized={src.endsWith('.svg')}
           sizes={compact ? '64px' : '80px'}
           style={{
             objectFit: "contain",
@@ -56,16 +56,123 @@ const Folder = ({ src, label, onClick, onHover, className, initial, animate, exi
         />
       </div>
     </div>
-    <span className={`folder-label transition-colors z-10 ${compact ? 'text-sm' : ''} ${isSelected ? 'bg-blue-600 text-white shadow-lg' : ''}`}>
-      {label}
-    </span>
+    {!hideLabel && (
+      <span className={`folder-label transition-colors z-10 ${compact ? 'text-sm' : ''} ${isSelected ? 'bg-blue-600 text-white shadow-lg' : ''}`}>
+        {label}
+      </span>
+    )}
   </motion.div>
 );
+
+type OrbitItem = { src: string; label: string };
+
+// Skills ring: icons orbit the hub continuously, pausing while one is hovered.
+const SkillsOrbit = ({
+  items,
+  isMobile,
+  hoveredLabel,
+  setHoveredLabel,
+}: {
+  items: OrbitItem[];
+  isMobile: boolean;
+  hoveredLabel: string | null;
+  setHoveredLabel: (label: string | null) => void;
+}) => {
+  const rotation = useMotionValue(0);
+  const counterRotation = useTransform(rotation, (v) => -v);
+  const pausedRef = useRef(false);
+  const speedRef = useRef(0); // current angular speed, deg/sec
+  const maxDegreesPerSecond = 7.5; // one full revolution ~48s
+
+  useAnimationFrame((_, delta) => {
+    const dt = Math.min(delta / 1000, 0.05);
+    const target = pausedRef.current ? 0 : maxDegreesPerSecond;
+    // Ease the speed toward its target so the ring spins up / coasts to a stop.
+    speedRef.current += (target - speedRef.current) * Math.min(1, dt * 3.5);
+    rotation.set(rotation.get() + dt * speedRef.current);
+  });
+
+  const orbitRadius = isMobile ? 140 : 250;
+
+  return (
+    <motion.div
+      style={{ position: "absolute", left: "50%", top: "50%", width: 0, height: 0, rotate: rotation }}
+    >
+      {items.map((item, idx) => {
+        const angle = (idx / items.length) * Math.PI * 2 - Math.PI / 2;
+        const tx = Math.cos(angle) * orbitRadius;
+        const ty = Math.sin(angle) * orbitRadius;
+        return (
+          <motion.div
+            key={item.label}
+            style={{ position: "absolute", left: 0, top: 0, width: 0, height: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: isMobile ? "none" : "auto" }}
+            initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+            animate={{ x: tx, y: ty, opacity: 1, scale: 1 }}
+            exit={{ x: 0, y: 0, opacity: 0, scale: 0, transition: { duration: 0.18, ease: "easeIn" } }}
+            transition={{ type: "spring", stiffness: 240, damping: 20, delay: 0.18 + idx * 0.08 }}
+            onMouseEnter={isMobile ? undefined : () => { pausedRef.current = true; setHoveredLabel(item.label); }}
+            onMouseLeave={isMobile ? undefined : () => { pausedRef.current = false; setHoveredLabel(null); }}
+          >
+            <motion.div style={{ display: "flex", alignItems: "center", justifyContent: "center", rotate: counterRotation, scale: isMobile ? 0.6 : 1 }}>
+              <Folder
+                src={item.src}
+                label={item.label}
+                isSelected={hoveredLabel === item.label}
+                compact={isMobile}
+                hideLabel
+              />
+            </motion.div>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+};
+
+const skillBlurbs: Record<string, string> = {
+  Python: "My go-to for ML & scripting",
+  React: "Component-driven web UIs",
+  Java: "OOP & backend fundamentals",
+  PostgreSQL: "Relational data, done right",
+  CSS: "Styling & responsive layouts",
+  Photoshop: "Photo editing & design",
+  "Premiere Pro": "Video editing & motion",
+  "Three.js": "3D graphics on the web",
+  "Next.js": "My framework of choice",
+  Ollama: "Running LLMs locally",
+  "Claude Code": "AI pair programming",
+  Cursor: "AI-native code editor",
+  OpenAI: "GPT & API integrations",
+  Git: "Version control everywhere",
+};
 
 const creativeCloudItems = [
   { label: "Lightroom", src: "/images/optimized/cc-lr-folder.png" },
   { label: "Premiere Pro", src: "/images/optimized/cc-pr-folder.png" },
   { label: "Photoshop", src: "/images/optimized/cc-ps-folder.png" },
+];
+
+const contactLinks: { modal: string; label: string; color: string; path?: string; img?: string; href?: string; email?: string }[] = [
+  {
+    modal: 'Email', label: 'Email', color: '#ff3b30',
+    img: '/icons/contact/gmail.svg',
+    email: 'daniel.lopez.3@stonybrook.edu',
+  },
+  {
+    modal: 'GitHub', label: 'GitHub', color: '#1f1f1f',
+    href: 'https://github.com/danrublop',
+    path: 'M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z',
+  },
+  {
+    modal: 'LinkedIn', label: 'LinkedIn', color: '#0a66c2',
+    href: 'https://www.linkedin.com/in/daniel-lopez-009620276',
+    path: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
+  },
+  {
+    modal: 'X', label: 'X', color: '#0a0a0a',
+    href: 'https://x.com/danrublop',
+    path: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
+  },
 ];
 
 const photographyGallery = [
@@ -785,26 +892,43 @@ daniellopez@Daniels-MacBook-Pro ~ % ${terminalCommand}
   );
 };
 
-const educationIcons = [
-  { src: "/icons/education/brd.png", label: "Diploma & AA Degree", x: 0, y: 1 },
-  { src: "/icons/education/stonnny.png", label: "B.S. Comp Sci", x: 2, y: 1 },
+const educationResume = [
+  {
+    src: "/icons/education/pokemon/metagross.png",
+    label: "Stony Brook University",
+    org: "B.S. Data Science & Computer Science · GPA 3.35 · Jan 2026 – May 2027",
+    bullets: [
+      "Relevant coursework: Object-Oriented Programming, Linear Algebra, Physics, Discrete Math, Data Structures, Probability & Statistics, Numerical Analysis.",
+    ],
+    logo: "/icons/education/stonnny.png",
+  },
+  {
+    src: "/icons/education/pokemon/noctowl.png",
+    label: "Bard High School Early College",
+    org: "High School Diploma & Associate's Degree · GPA 3.8",
+    bullets: [
+      "Relevant coursework: Calculus I, Calculus II, Programming in Python, Russian Literature, Literary Theory, Spanish (3 years), Biology.",
+    ],
+    photo: "/images/optimized/bard-stamp.jpg",
+    logo: "/icons/education/brd.png",
+  },
 ];
 
 const skillIcons = [
-  { src: "/icons/skills/icon1.png", label: "Python", x: 0, y: 0 },
-  { src: "/icons/skills/react.png", label: "React", x: 1, y: 0 },
-  { src: "/icons/skills/icon2.png", label: "Java", x: 2, y: 0 },
-  { src: "/icons/skills/postgresql.png", label: "PostgreSQL", x: 3, y: 0 },
-  { src: "/icons/skills/css.png", label: "CSS", x: 4, y: 0 },
-  { src: "/icons/skills/icon5.png", label: "Photography", x: 0, y: 1 },
-  { src: "/icons/skills/creativecloud.png", label: "Creative Cloud", x: 1, y: 1 },
-  { src: "/icons/skills/threejs.png", label: "Three.js", x: 3, y: 1 },
-  { src: "/icons/skills/nextjs.png", label: "Next.js", x: 4, y: 1 },
-  { src: "/icons/skills/ollama.png", label: "Ollama", x: 0, y: 2 },
-  { src: "/icons/skills/icon6.png", label: "Claude Code", x: 1, y: 2 },
-  { src: "/icons/skills/icon3.png", label: "Cursor", x: 2, y: 2 },
-  { src: "/icons/skills/chatgpt.png", label: "OpenAI", x: 3, y: 2 },
-  { src: "/icons/skills/git_folder.png", label: "Git", x: 4, y: 2 },
+  { src: "/icons/skills/svg/python.svg", label: "Python", x: 0, y: 0 },
+  { src: "/icons/skills/svg/react.svg", label: "React", x: 1, y: 0 },
+  { src: "/icons/skills/svg/java.svg", label: "Java", x: 2, y: 0 },
+  { src: "/icons/skills/svg/postgresql.svg", label: "PostgreSQL", x: 3, y: 0 },
+  { src: "/icons/skills/svg/css.svg", label: "CSS", x: 4, y: 0 },
+  { src: "/icons/skills/svg/photoshop.svg", label: "Photoshop", x: 1, y: 1 },
+  { src: "/icons/skills/svg/premiere.svg", label: "Premiere Pro", x: 2, y: 1 },
+  { src: "/icons/skills/svg/threejs.svg", label: "Three.js", x: 3, y: 1 },
+  { src: "/icons/skills/svg/nextjs.svg", label: "Next.js", x: 4, y: 1 },
+  { src: "/icons/skills/svg/ollama.svg", label: "Ollama", x: 0, y: 2 },
+  { src: "/icons/skills/svg/claude.svg", label: "Claude Code", x: 1, y: 2 },
+  { src: "/icons/skills/svg/cursor.svg", label: "Cursor", x: 2, y: 2 },
+  { src: "/icons/skills/svg/openai.svg", label: "OpenAI", x: 3, y: 2 },
+  { src: "/icons/skills/svg/git.svg", label: "Git", x: 4, y: 2 },
 ];
 
 const creativeIcons = [
@@ -817,23 +941,146 @@ const creativeIcons = [
   { src: "/icons/skills/icon5.png", label: "Audition", x: 2, y: 1 },
 ];
 
-const experienceIcons = [
-  { src: "/icons/experience/applescript.png", label: "Dev @ Thriive AI", x: 0, y: 0 },
-  { src: "/icons/experience/terminal.png", label: "IT Dept @ SBU", x: 1, y: 0 },
-  { src: "/icons/experience/pizzahut.png", label: "Goodfellas Pizza", x: 2, y: 0 },
-  { src: "/icons/experience/job1.png", label: "Locksmith @ Cashier", x: 0, y: 1 },
-  { src: "/icons/experience/job2.png", label: "Volunteer Tutoring", x: 2, y: 1 },
-  { src: "/icons/experience/job3.png", label: "Child Care", x: 0, y: 2 },
-  { src: "/icons/experience/job4.png", label: "Window Cleaning", x: 1, y: 2 },
-  { src: "/icons/experience/assets.png", label: "Video Editor", x: 2, y: 2 },
+const experienceResume = [
+  {
+    src: "/icons/experience/pokemon/porygon.png",
+    label: "Generative AI Intern",
+    org: "Thriive AI · Bronx, NY · Aug 2025 – Nov 2025",
+    bullets: [
+      "Cut turnaround for producing medical explainers from weeks to ~15 minutes by shipping an LLM-to-avatar pipeline.",
+      "Automated scene planning, narration, and avatar rendering end-to-end, reducing cost to ~$6 per video with no human editing.",
+      "Integrated Veo 3, HeyGen, and TTS models into a unified scene production pipeline.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/magnemite.png",
+    label: "IT Systems Technician",
+    org: "Stony Brook University, Dept. of Information Technology · Feb 2026 – May 2026",
+    bullets: [
+      "Resolved 50+ faculty and student tickets per semester in TeamDynamix by troubleshooting software and network issues.",
+      "Reimaged and deployed 200+ computers using Jamf and Ghost, standardizing software and security configurations.",
+      "Maintained printer infrastructure across the University, reducing downtime through maintenance and network management.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/charmander.png",
+    label: "Goodfellas Pizza",
+    org: "Goodfellas Pizza, Bronx, NY · Jun 2023 – Sep 2024",
+    bullets: [
+      "Cashier / Counter Worker serving customers and taking orders by phone, in person, and through restaurant apps.",
+      "Prepared food, manned the cashier, and worked closing shifts.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/klefki.png",
+    label: "Locksmith @ Cashier",
+    org: "Basics on Broadway, Manhattan, NY · Aug 2025 – Feb 2026",
+    bullets: [
+      "Assisted customers with technical product inquiries and key duplication services in a fast-paced retail environment.",
+      "Managed inventory intake and shipment processing, maintaining accurate stock levels across departments.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/alakazam.png",
+    label: "Volunteer Tutoring",
+    org: "Coalition for Asian American Children & Families / Bard College CLW · 2023 – 2025",
+    bullets: [
+      "Collaborated with NYC DOE to develop and teach curriculum at multiple public high schools citywide; Certificate of Recognition from the NYC Comptroller (2023).",
+      "Peer Tutor chosen by college faculty to tutor students and provide educational resources and guidance.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/chansey.png",
+    label: "Child Care",
+    org: "The Hebrew Institute of Riverdale, Bronx, NY · Jun 2021 – Dec 2024",
+    bullets: [
+      "Youth Leader looking after young children every Saturday morning while their parents attended Shabbat services.",
+      "Organized fundraisers and managed community events.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/squirtle.png",
+    label: "Co-Founder, Window Cleaning",
+    org: "Riverdale Window Cleaning · Bronx, NY · Jun 2023 – Oct 2023",
+    bullets: [
+      "Acquired 15 clients in under 3 months by running door-to-door sales and leveraging customer testimonials.",
+      "Ran end-to-end operations including scheduling, billing, service delivery, and client acquisition.",
+    ],
+  },
+  {
+    src: "/icons/experience/pokemon/smeargle.png",
+    label: "Video & Graphic Design Editor",
+    org: "The College Soccer Guy (Remote) · Los Angeles, CA · Aug 2023 – Dec 2024",
+    bullets: [
+      "Delivered polished video content for 20+ athlete clients on-deadline using Adobe Premiere Pro and Photoshop.",
+      "Grew the agency's Instagram to 115K followers by designing graphics for posts.",
+    ],
+  },
 ];
 
-const projectIcons = [
-  { src: "/icons/projects/project3.png", label: "Prompt2Video", x: 1, y: 0 },
-  { src: "/icons/projects/project2.png", label: "Ecommerce", x: 0, y: 1 },
-  { src: "/icons/projects/project1.png", label: "Point of Sale", x: 2, y: 1 },
-  { src: "/icons/projects/terminal.png", label: "Code Assistant", x: 1, y: 2 },
+const projectsResume = [
+  {
+    src: "/icons/projects/pokemon/porygonz.png",
+    label: "Cench Studio — Agentic Video Editor",
+    org: "TypeScript · React · Electron · Three.js · Anthropic SDK · MCP · FFmpeg",
+    stack: [
+      { name: "TypeScript", src: "/icons/projects/tech/typescript.svg" },
+      { name: "React", src: "/icons/projects/tech/react.svg" },
+      { name: "Electron", src: "/icons/projects/tech/electron.svg" },
+      { name: "Three.js", src: "/icons/projects/tech/threejs.svg" },
+      { name: "Anthropic SDK", src: "/icons/projects/tech/anthropic.svg" },
+      { name: "MCP", src: "/icons/projects/tech/mcp.svg" },
+      { name: "FFmpeg", src: "/icons/projects/tech/ffmpeg.svg" },
+    ],
+    bullets: [
+      "Built an Electron desktop NLE that turns prompts into edited video, driven by a unified agent with 155 tools that spawns parallel scene-builder sub-agents to render multi-scene videos concurrently.",
+      "Wrote a provider-agnostic adapter layer for Anthropic, OpenAI, Google, Claude Code, and Codex CLI, plus an action-log-as-truth data model (WAL, blob store, effect runner) giving the timeline deterministic re-render, undo/redo, and Git-style scene branching.",
+      "Unified 9 rendering pipelines and 18 generative-media providers (8 image, 5 avatar, 5 TTS) behind one API; shipped a Pixi + WebCodecs MP4 exporter and an MCP server exposing the editor to Claude Code.",
+    ],
+  },
+  {
+    src: "/icons/projects/pokemon/mareep.png",
+    label: "Llamas Remote — macOS LLM Notch Assistant",
+    org: "TypeScript · Electron · React · Ollama · Anthropic · SQLite FTS5 · Swift",
+    url: "https://github.com/danrublop/llamas-remote",
+    stack: [
+      { name: "TypeScript", src: "/icons/projects/tech/typescript.svg" },
+      { name: "Electron", src: "/icons/projects/tech/electron.svg" },
+      { name: "React", src: "/icons/projects/tech/react.svg" },
+      { name: "Ollama", src: "/icons/projects/tech/ollama.svg" },
+      { name: "Anthropic", src: "/icons/projects/tech/anthropic.svg" },
+      { name: "SQLite FTS5", src: "/icons/projects/tech/sqlite.svg" },
+      { name: "Swift", src: "/icons/projects/tech/swift.svg" },
+    ],
+    bullets: [
+      "Built a macOS notch HUD that captures the active selection or a screen region and streams answers from local (Ollama) or cloud (OpenAI, Anthropic) models into a searchable notebook.",
+      "Designed a Markdown-as-truth notebook indexed in SQLite FTS5 (rebuilt from disk on launch), with on-device Swift Vision OCR and API keys encrypted at rest via Electron safeStorage.",
+      "Architected an injectable service layer (capture, multi-provider LLM router, notebook store) under 18 unit-test suites, with hardened IPC (context isolation, DOMPurify output sanitization).",
+    ],
+  },
+  {
+    src: "/icons/projects/pokemon/meowth.png",
+    label: "Agentic Point-of-Sale",
+    org: "Python · Flask · React · PostgreSQL · Tauri · Claude API · PyTorch · Socket.IO",
+    url: "https://github.com/Daniel159642/The-Agentic-POS",
+    stack: [
+      { name: "Python", src: "/icons/projects/tech/python.svg" },
+      { name: "Flask", src: "/icons/projects/tech/flask.svg" },
+      { name: "React", src: "/icons/projects/tech/react.svg" },
+      { name: "PostgreSQL", src: "/icons/projects/tech/postgresql.svg" },
+      { name: "Tauri", src: "/icons/projects/tech/tauri.svg" },
+      { name: "Claude API", src: "/icons/projects/tech/claude.svg" },
+      { name: "PyTorch", src: "/icons/projects/tech/pytorch.svg" },
+      { name: "Socket.IO", src: "/icons/projects/tech/socketio.svg" },
+    ],
+    bullets: [
+      "Built a full-stack, multi-location POS platform (64K+ lines, 96-table PostgreSQL schema) replacing separate checkout, inventory, accounting, and scheduling tools with one system.",
+      "Eliminated manual data entry by extracting line items from vendor invoices (PDF, image, spreadsheet) via a hybrid Claude vision and local spaCy/EfficientNet pipeline, auto-restocking inventory and syncing to Shopify.",
+      "Engineered a rules-driven double-entry accounting engine that auto-journalizes every transaction and syncs to QuickBooks, plus a constraint-based scheduler publishing optimized shifts to Google Calendar.",
+    ],
+  },
 ];
+
 
 const aboutIcons = [
   { src: "/icons/aboutme/gaming.png", label: "Futbol", x: 0, y: 2 },
@@ -850,8 +1097,6 @@ const contactIcons = [
 ];
 
 const modalData: Record<string, { title: string; message: string; icon: string; photo?: string; gallery?: string[]; notesWidth?: number; url?: string; variant?: "default" | "notes" | "terminal" | "photos" | "mail" | "about" | "projects-grid"; confirmLabel?: string }> = {
-  AboutMe: { title: "About Me", message: "", icon: "/icons/aboutme/profile.png", variant: "about" },
-  ProjectsGrid: { title: "Projects", message: "", icon: "/icons/projects.png", variant: "projects-grid" },
   X: { title: "Open X account?", message: "This will take you to @danrublop on X.com in a new tab.", icon: "/icons/contact/x.png", url: "https://x.com/danrublop" },
   LinkedIn: { title: "Open LinkedIn?", message: "Visit My profile on LinkedIn to connect or view my experiences.", icon: "/icons/contact/linkedin.png", url: "https://www.linkedin.com/in/daniel-lopez-009620276" },
   GitHub: { title: "Open GitHub?", message: "Check out My repositories and code contributions on GitHub.", icon: "/icons/contact/github.png", url: "https://github.com/danrublop" },
@@ -899,13 +1144,36 @@ export default function Home() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const [activeCreativeLabel, setActiveCreativeLabel] = useState(creativeCloudItems[0].label);
   const [activePhotoUrl, setActivePhotoUrl] = useState(photographyGallery[0]);
-  const [socialsOpen, setSocialsOpen] = useState(false);
+  const [profileHover, setProfileHover] = useState(false);
+  const fanCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openFan = () => { if (fanCloseTimer.current) clearTimeout(fanCloseTimer.current); setProfileHover(true); };
+  const closeFan = () => { if (fanCloseTimer.current) clearTimeout(fanCloseTimer.current); fanCloseTimer.current = setTimeout(() => setProfileHover(false), 180); };
+
+  const [contactMenuOpen, setContactMenuOpen] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [notif, setNotif] = useState<{ title: string; message: string; icon?: string } | null>(null);
+  const notifTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showNotif = (title: string, message: string, icon?: string) => {
+    setNotif({ title, message, icon });
+    if (notifTimer.current) clearTimeout(notifTimer.current);
+    notifTimer.current = setTimeout(() => setNotif(null), 3800);
+  };
+  const handleContact = (it: { modal: string; href?: string; email?: string }) => {
+    if (it.email) {
+      const email = it.email;
+      navigator.clipboard?.writeText(email)
+        .then(() => showNotif("Mail", "Email copied to clipboard", "/icons/contact/gmail.svg"))
+        .catch(() => showNotif("Mail", email, "/icons/contact/gmail.svg"));
+    } else if (it.href) {
+      window.open(it.href, "_blank", "noopener,noreferrer");
+    }
+  };
 
   const toggleOpen = () => { if (view !== "main") { setView("main"); setIsOpen(true); } else { setIsOpen(!isOpen); } };
   const openSkills = () => { setView("skills"); setHoveredLabel(null); };
   const openExperience = () => { setView("experience"); setHoveredLabel(null); };
   const openProjects = () => { setView("projects"); setHoveredLabel(null); };
-  const openAboutMe = () => { setView("aboutme"); setHoveredLabel(null); };
   const openContact = () => { setView("contact"); setHoveredLabel(null); };
   const openCreativeCloud = () => { setView("creativecloud"); setHoveredLabel(null); };
   const openEducation = () => { setView("education"); setHoveredLabel(null); };
@@ -965,7 +1233,7 @@ export default function Home() {
             else if (['Skills', 'Experience', 'Projects', 'Education'].includes(label)) {
               if (label === 'Skills') openSkills();
               else if (label === 'Experience') openExperience();
-              else if (label === 'Projects') setShowModal('ProjectsGrid');
+              else if (label === 'Projects') openProjects();
               else if (label === 'Education') openEducation();
             }
           } else if (modalData[label]) {
@@ -993,12 +1261,10 @@ export default function Home() {
         let items: any[] = [];
         let hubLabel = "", hubPos = { x: 1, y: 1 };
         if (view === 'skills') { items = skillIcons; hubLabel = "Skills"; hubPos = { x: 2, y: 1 }; }
-        else if (view === 'experience') { items = experienceIcons; hubLabel = "Experience"; hubPos = { x: 1, y: 1 }; }
-        else if (view === 'projects') { items = projectIcons; hubLabel = "Projects"; hubPos = { x: 1, y: 1 }; }
+        else if (view === 'experience' || view === 'projects' || view === 'education') { return []; }
         else if (view === 'aboutme') { items = aboutIcons; hubLabel = "About Me"; hubPos = { x: 1, y: 2 }; }
         else if (view === 'contact') { items = contactIcons; hubLabel = "Contact"; hubPos = { x: 1, y: 1 }; }
         else if (view === 'creativecloud') { items = creativeIcons; hubLabel = "Creative Cloud"; hubPos = { x: 1, y: 1 }; }
-        else if (view === 'education') { items = educationIcons; hubLabel = "Education"; hubPos = { x: 1, y: 1 }; }
         return [{ label: hubLabel, x: hubPos.x, y: hubPos.y }, ...items.map(i => ({ label: i.label, x: i.x, y: i.y }))];
       };
 
@@ -1022,7 +1288,7 @@ export default function Home() {
     const hubs = [
       { label: "Education", src: "/icons/education.png" }, { label: "Skills", src: "/icons/skills.png" }, { label: "About Me", src: "/icons/aboutme.png" }, { label: "Contact", src: "/icons/contact.png" }, { label: "Projects", src: "/icons/projects.png" }, { label: "Experience", src: "/icons/experience.png" }, { label: "Creative Cloud", src: "/icons/skills/creativecloud.png" }, { label: "Daniel Lopez", src: "/icons/center.png" }
     ];
-    const all = [...hubs, ...educationIcons, ...skillIcons, ...experienceIcons, ...projectIcons, ...aboutIcons, ...contactIcons, ...creativeIcons];
+    const all = [...hubs, ...educationResume, ...skillIcons, ...experienceResume, ...projectsResume, ...aboutIcons, ...contactIcons, ...creativeIcons];
     return all.find(i => i?.label === label)?.src || null;
   };
 
@@ -1048,89 +1314,120 @@ export default function Home() {
 
   return (
     <main className="relative flex items-center justify-center w-full h-screen overflow-hidden bg-white">
-      <div
-        style={{
-          position: 'absolute',
-          top: isMobile ? '52px' : '20px',
-          left: isMobile ? '12px' : '20px',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}
-      >
-        <div
-          onClick={() => setShowModal('AboutMe')}
-          style={{
-            width: isMobile ? '40px' : '48px',
-            height: isMobile ? '40px' : '48px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            cursor: 'pointer',
-            border: '1.5px solid rgba(0,0,0,0.08)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-            background: '#fff',
-            flexShrink: 0,
-            transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.06)';
-            e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.18)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-          }}
-          aria-label="About Me"
-          role="button"
-        >
-          <Image
-            src="/icons/aboutme/danielpfp.png"
-            alt="Daniel Lopez"
-            width={isMobile ? 40 : 48}
-            height={isMobile ? 40 : 48}
-            draggable={false}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            priority
-          />
-        </div>
-        <EmailIcon3D
-          size={isMobile ? 44 : 56}
-          onClick={() => setSocialsOpen((v) => !v)}
-        />
-        <AnimatePresence>
-          {socialsOpen && (
-            <motion.div
-              key="social-tray"
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              transition={{ duration: 0.18 }}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              {([
-                { brand: 'x' as const, modal: 'X' },
-                { brand: 'github' as const, modal: 'GitHub' },
-                { brand: 'linkedin' as const, modal: 'LinkedIn' },
-              ]).map((it, idx) => (
+      {(() => {
+        const profileDim = isMobile ? 54 : 68;
+        const iconDim = isMobile ? 34 : 40;
+        const radius = isMobile ? 66 : 84;
+        const contacts = contactLinks;
+        return (
+          <div
+            style={{
+              position: 'absolute',
+              top: isMobile ? '16px' : '20px',
+              left: isMobile ? '16px' : '20px',
+              width: profileDim,
+              height: profileDim,
+              zIndex: 9999,
+            }}
+          >
+            {!isMobile && contacts.map((it, idx) => {
+              // Fan icons into a quarter-arc toward the lower-right so they stay on-screen.
+              const angle = ((idx / (contacts.length - 1)) * 90) * (Math.PI / 180);
+              const tx = Math.cos(angle) * radius;
+              const ty = Math.sin(angle) * radius;
+              return (
                 <motion.div
-                  key={it.brand}
-                  initial={{ opacity: 0, scale: 0.4, x: -16 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  exit={{ opacity: 0, scale: 0.4, x: -16 }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 22, delay: idx * 0.06 }}
+                  key={it.modal}
+                  onClick={() => handleContact(it)}
+                  onMouseEnter={openFan}
+                  onMouseLeave={closeFan}
+                  aria-label={it.label}
+                  role="button"
+                  initial={false}
+                  animate={profileHover
+                    ? { x: tx, y: ty, opacity: 1, scale: 1, pointerEvents: 'auto' }
+                    : { x: 0, y: 0, opacity: 0, scale: 0.4, pointerEvents: 'none' }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 26, delay: profileHover ? idx * 0.04 : 0 }}
+                  whileHover={{ scale: 1.18 }}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    marginTop: -iconDim / 2,
+                    marginLeft: -iconDim / 2,
+                    width: iconDim,
+                    height: iconDim,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 1,
+                  }}
                 >
-                  <BrandIcon3D
-                    brand={it.brand}
-                    size={isMobile ? 40 : 52}
-                    onClick={() => setShowModal(it.modal)}
-                  />
+                  {it.img ? (
+                    <div style={{ position: 'relative', width: iconDim * 0.95, height: iconDim * 0.95 }}>
+                      <Image src={it.img} alt={it.label} fill sizes={`${iconDim}px`} unoptimized={it.img.endsWith('.svg')} style={{ objectFit: 'contain' }} />
+                    </div>
+                  ) : (
+                    <svg width={iconDim * 0.72} height={iconDim * 0.72} viewBox="0 0 24 24" fill={it.color} aria-hidden="true">
+                      <path d={it.path} />
+                    </svg>
+                  )}
                 </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              );
+            })}
+            <div
+              onMouseEnter={openFan}
+              onMouseLeave={closeFan}
+              style={{
+                position: 'relative',
+                width: profileDim,
+                height: profileDim,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                cursor: 'default',
+                border: '3px solid #ffffff',
+                boxShadow: profileHover
+                  ? '0 0 0 1.5px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.18)'
+                  : '0 0 0 1.5px rgba(0,0,0,0.08), 0 3px 10px rgba(0,0,0,0.12)',
+                background: '#fff',
+                transform: profileHover ? 'scale(1.06)' : 'scale(1)',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+                zIndex: 2,
+              }}
+              aria-label="Daniel Lopez"
+            >
+              <Image
+                src="/icons/aboutme/danielpfp.png"
+                alt="Daniel Lopez"
+                width={profileDim}
+                height={profileDim}
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                priority
+              />
+            </div>
+          </div>
+        );
+      })()}
+
+      {isMobile && (
+        <button
+          onClick={() => setContactMenuOpen(true)}
+          aria-label="Contact"
+          style={{
+            position: 'absolute', top: '24px', right: '16px', zIndex: 9999,
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: '8px 16px', borderRadius: '999px',
+            border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(10px)', boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
+            fontSize: '15px', fontWeight: 600, color: '#111', cursor: 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Contact
+        </button>
+      )}
 
       <AnimatePresence mode="wait">
         {view === "main" ? (
@@ -1141,7 +1438,7 @@ export default function Home() {
                 <>
                   <Folder src="/icons/skills.png" label="Skills" compact={isMobile} className="absolute" onClick={openSkills} onHover={setHoveredLabel} isSelected={hoveredLabel === "Skills"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: -mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
                   <Folder src="/icons/education.png" label="Education" compact={isMobile} className="absolute" onClick={openEducation} onHover={setHoveredLabel} isSelected={hoveredLabel === "Education"} initial={{ y: 0, opacity: 0, scale: 0 }} animate={{ y: mainOffsetY, opacity: 1, scale: 1 }} exit={{ y: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0.05 }} priority />
-                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={() => setShowModal('ProjectsGrid')} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
+                  <Folder src="/icons/projects.png" label="Projects" compact={isMobile} className="absolute" onClick={openProjects} onHover={setHoveredLabel} isSelected={hoveredLabel === "Projects"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: -mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
                   <Folder src="/icons/experience.png" label="Experience" compact={isMobile} className="absolute" onClick={openExperience} onHover={setHoveredLabel} isSelected={hoveredLabel === "Experience"} initial={{ x: 0, opacity: 0, scale: 0 }} animate={{ x: mainOffsetX, opacity: 1, scale: 1 }} exit={{ x: 0, opacity: 0, scale: 0 }} transition={{ ...springTransition, delay: 0 }} priority />
                 </>
               )}
@@ -1150,35 +1447,121 @@ export default function Home() {
         ) : (
           <motion.div key={view} className={`relative flex items-center justify-center h-full ${isMobile ? "w-full px-4 pt-20 pb-8" : "w-[1000px]"}`} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={springTransition}>
             {(() => {
+              if (view === 'experience' || view === 'projects' || view === 'education') {
+                const resumeConfig: Record<string, { data: { src: string; label: string; org: string; bullets: string[]; url?: string; photo?: string; logo?: string; stack?: { name: string; src?: string }[] }[]; heading: string; subtitle: string }> = {
+                  experience: { data: experienceResume, heading: "Experience", subtitle: "Every role came with a partner." },
+                  projects: { data: projectsResume, heading: "Projects", subtitle: "Things I've built, each with a partner." },
+                  education: { data: educationResume, heading: "Education", subtitle: "Where I trained up." },
+                };
+                const { data: resumeData, heading, subtitle } = resumeConfig[view];
+                return (
+                  <motion.div
+                    key={`${view}-resume`}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="no-scrollbar"
+                    style={{ width: "100%", maxHeight: isMobile ? "calc(100vh - 150px)" : "calc(100vh - 160px)", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", padding: isMobile ? "34px 8px 40px" : "28px 16px 44px", maskImage: "linear-gradient(to bottom, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)" }}
+                  >
+                    <div style={{ maxWidth: 720, margin: "0 auto" }}>
+                      <div style={{ fontSize: isMobile ? 20 : 26, fontWeight: 800, color: "#111", letterSpacing: "-0.02em" }}>{heading}</div>
+                      <div style={{ fontSize: 13, color: "#999", marginTop: 2, marginBottom: isMobile ? 16 : 22 }}>{subtitle}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 16 : 20 }}>
+                        {resumeData.map((entry, idx) => {
+                          const isGithub = !!entry.url && entry.url.includes("github.com");
+                          return (
+                          <motion.div
+                            key={entry.label}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.05 + idx * 0.05, duration: 0.25 }}
+                            style={{ display: "flex", gap: isMobile ? 12 : 16, alignItems: "flex-start" }}
+                          >
+                            <div style={{ position: "relative", width: isMobile ? 54 : 70, height: isMobile ? 54 : 70, flexShrink: 0, marginTop: 2 }}>
+                              <Image src={entry.src} alt={entry.label} fill sizes="70px" style={{ objectFit: "contain" }} />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                                <div style={{ fontSize: isMobile ? 15 : 16, fontWeight: 700, color: "#111" }}>{entry.label}</div>
+                                {entry.url && (
+                                  <a
+                                    href={entry.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#111", textDecoration: "none", padding: "3px 9px", borderRadius: 999, border: "1px solid rgba(0,0,0,0.12)", background: "rgba(0,0,0,0.03)", transition: "background 0.15s ease" }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.08)"; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
+                                  >
+                                    {isGithub ? (
+                                      <>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#111" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                                        View on GitHub
+                                      </>
+                                    ) : (
+                                      <>
+                                        Visit site
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg>
+                                      </>
+                                    )}
+                                  </a>
+                                )}
+                              </div>
+                              {entry.stack ? (
+                                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, marginTop: 5, marginBottom: 8 }}>
+                                  {entry.stack.map((t) => (
+                                    t.src ? (
+                                      <img key={t.name} src={t.src} alt={t.name} title={t.name} draggable={false} style={{ height: 22, width: "auto", maxWidth: 96, objectFit: "contain" }} />
+                                    ) : (
+                                      <span key={t.name} title={t.name} style={{ fontSize: 11, fontWeight: 600, color: "#666", padding: "2px 8px", borderRadius: 999, border: "1px solid rgba(0,0,0,0.12)", background: "rgba(0,0,0,0.03)" }}>{t.name}</span>
+                                    )
+                                  ))}
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: isMobile ? 11.5 : 12.5, color: "#888", marginBottom: 6, marginTop: 2 }}>{entry.org}</div>
+                              )}
+                              <ul style={{ listStyleType: "disc", paddingLeft: 18, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                                {entry.bullets.map((b, i) => (
+                                  <li key={i} style={{ fontSize: isMobile ? 12.5 : 13.5, color: "#444", lineHeight: 1.45 }}>{b}</li>
+                                ))}
+                              </ul>
+                              {(entry.photo || entry.logo) && (
+                                <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                                  {entry.photo && (
+                                    <div style={{ position: "relative", width: 64, height: 64, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", flexShrink: 0 }}>
+                                      <Image src={entry.photo} alt={`${entry.label} photo`} fill sizes="64px" style={{ objectFit: "cover" }} />
+                                    </div>
+                                  )}
+                                  {entry.logo && (
+                                    <div style={{ position: "relative", width: 64, height: 64, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", background: "#fff", flexShrink: 0 }}>
+                                      <Image src={entry.logo} alt={`${entry.label} logo`} fill sizes="64px" style={{ objectFit: "contain", padding: 6 }} />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              }
               let grid: any[] = [];
               let hubLabel = "", hubSrc = "", hubPos = { x: 1, y: 1 };
               const cellW = isMobile ? 108 : 145;
               const cellH = isMobile ? 98 : 125;
-              const getMobileSkillsPosition = (idx: number) => {
-                // Fill a 3x5 grid while reserving center cell (col 1, row 2) for the Skills hub.
-                const slots: Array<{ col: number; row: number }> = [];
-                for (let row = 0; row < 5; row++) {
-                  for (let col = 0; col < 3; col++) {
-                    if (col === 1 && row === 2) continue;
-                    slots.push({ col, row });
-                  }
-                }
-                return slots[idx] ?? { col: 2, row: 4 };
-              };
               if (view === 'skills') { grid = skillIcons; hubLabel = "Skills"; hubSrc = "/icons/skills.png"; hubPos = { x: 2, y: 1 }; }
-              else if (view === 'experience') { grid = experienceIcons; hubLabel = "Experience"; hubSrc = "/icons/experience.png"; }
-              else if (view === 'projects') { grid = projectIcons; hubLabel = "Projects"; hubSrc = "/icons/projects.png"; }
               else if (view === 'aboutme') { grid = aboutIcons; hubLabel = "About Me"; hubSrc = "/icons/aboutme.png"; hubPos = { x: 1, y: 2 }; }
               else if (view === 'contact') { grid = contactIcons; hubLabel = "Contact"; hubSrc = "/icons/contact.png"; }
               else if (view === 'creativecloud') { grid = creativeIcons; hubLabel = "Creative Cloud"; hubSrc = "/icons/skills/creativecloud.png"; }
-              else if (view === 'education') { grid = educationIcons; hubLabel = "Education"; hubSrc = "/icons/education.png"; }
               const centerX = hubPos.x, centerY = hubPos.y;
               const hubMobileY = 0;
               return [
                 <Folder
                   key="hub"
                   src={hubSrc}
-                  label={hubLabel}
+                  label={view === "skills" ? "Back" : hubLabel}
                   onClick={() => setView("main")}
                   isSelected={hoveredLabel === hubLabel}
                   onHover={setHoveredLabel}
@@ -1188,36 +1571,59 @@ export default function Home() {
                   animate={isMobile ? { y: hubMobileY, scale: 1, opacity: 1 } : { scale: 1 }}
                   transition={springTransition}
                 />,
-                ...grid.map((item, idx) => (
-                  <Folder
-                    key={item.label}
-                    src={item.src}
-                    label={item.label}
-                    onHover={setHoveredLabel}
-                    isSelected={hoveredLabel === item.label}
-                    compact={isMobile}
-                    onClick={() => { if (modalData[item.label]) setShowModal(item.label); else if (item.label === 'Creative Cloud') openCreativeCloud(); }}
-                    className="absolute"
-                    initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                    animate={
-                      isMobile && view === "skills"
-                        ? {
-                            x: (getMobileSkillsPosition(idx).col - 1) * cellW,
-                            y: (getMobileSkillsPosition(idx).row - 2) * cellH,
-                            opacity: 1,
-                            scale: 1
-                          }
-                        : {
-                            x: (item.x - centerX) * cellW,
-                            y: (item.y - centerY) * cellH,
-                            opacity: 1,
-                            scale: 1
-                          }
-                    }
-                    exit={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                    transition={{ ...springTransition, delay: idx * 0.01 }}
-                  />
-                ))
+                ...(view === "skills"
+                  ? [
+                      <div
+                        key="skills-center-text"
+                        style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, 78px)", width: isMobile ? "160px" : "200px", textAlign: "center", pointerEvents: "none", zIndex: 60 }}
+                      >
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={hoveredLabel && skillBlurbs[hoveredLabel] ? hoveredLabel : "__skills__"}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.16 }}
+                          >
+                            {hoveredLabel && skillBlurbs[hoveredLabel] ? (
+                              <>
+                                <div style={{ fontSize: "13px", fontWeight: 700, color: "#111" }}>{hoveredLabel}</div>
+                                <div style={{ fontSize: "12px", fontWeight: 500, color: "#666", lineHeight: 1.35, marginTop: "2px" }}>{skillBlurbs[hoveredLabel]}</div>
+                              </>
+                            ) : null}
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>,
+                      <SkillsOrbit
+                        key="skills-orbit"
+                        items={grid}
+                        isMobile={isMobile}
+                        hoveredLabel={hoveredLabel}
+                        setHoveredLabel={setHoveredLabel}
+                      />,
+                    ]
+                  : grid.map((item, idx) => (
+                      <Folder
+                        key={item.label}
+                        src={item.src}
+                        label={item.label}
+                        onHover={setHoveredLabel}
+                        isSelected={hoveredLabel === item.label}
+                        compact={isMobile}
+                        onClick={() => { if (modalData[item.label]) setShowModal(item.label); else if (item.label === 'Creative Cloud') openCreativeCloud(); }}
+                        className="absolute"
+                        initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+                        animate={{
+                          x: (item.x - centerX) * cellW,
+                          y: (item.y - centerY) * cellH,
+                          opacity: 1,
+                          scale: 1
+                        }}
+                        exit={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+                        transition={{ ...springTransition, delay: idx * 0.01 }}
+                      />
+                    ))
+                )
               ];
             })()}
           </motion.div>
@@ -1250,22 +1656,39 @@ export default function Home() {
         />
       )}
 
-      {!isMobile && (
+      {!isMobile && view !== 'experience' && view !== 'projects' && view !== 'education' && (
         <div className="absolute top-8 left-0 right-0 flex justify-center text-neutral-400 text-xs font-light w-full"><span>{view === 'main' ? "WASD / Arrows to explore • Enter to open • Esc to close" : "WASD / Arrows to explore • Enter to select • Esc to go back"}</span></div>
       )}
+
+      {(view === 'experience' || view === 'projects' || view === 'education') && (
+        <motion.div
+          onClick={() => { setView('main'); setHoveredLabel(null); }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={springTransition}
+          aria-label="Back"
+          style={{ position: 'absolute', right: isMobile ? '20px' : '48px', bottom: isMobile ? '84px' : '40px', zIndex: 10000, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+        >
+          <div style={{ position: 'relative', width: isMobile ? 76 : 104, height: isMobile ? 76 : 104 }}>
+            <Image src={view === 'projects' ? "/icons/projects.png" : view === 'education' ? "/icons/education.png" : "/icons/experience.png"} alt="Back" fill sizes="104px" style={{ objectFit: 'contain' }} priority />
+          </div>
+          <span style={{ fontSize: isMobile ? 14 : 16, fontWeight: 400, color: '#111' }}>Back</span>
+        </motion.div>
+      )}
       
-      <div style={{ position: 'absolute', top: isMobile ? '12px' : 'auto', bottom: isMobile ? 'auto' : '24px', left: isMobile ? '50%' : '32px', transform: isMobile ? 'translateX(-50%)' : 'none', maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', overflowX: isMobile ? 'auto' : 'visible', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '6px', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0, 0, 0, 0.05)', pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', top: 'auto', bottom: isMobile ? '16px' : '24px', left: isMobile ? '50%' : '32px', transform: isMobile ? 'translateX(-50%)' : 'none', maxWidth: isMobile ? 'calc(100vw - 20px)' : 'none', overflowX: isMobile ? 'auto' : 'visible', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 12px', borderRadius: '6px', backgroundColor: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(0, 0, 0, 0.05)', pointerEvents: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 500, color: '#999' }}>
-          <div style={{ position: 'relative', width: '16px', height: '16px', flexShrink: 0 }}>
-            <img src="/icons/path/macintosh-hd.png" alt="Macintosh HD" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <span style={{ whiteSpace: 'nowrap' }}>Macintosh HD</span>
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          <div style={{ position: 'relative', width: '14px', height: '14px', flexShrink: 0 }}>
-            <img src="/icons/path/users.png" alt="Users" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <span style={{ whiteSpace: 'nowrap' }}>Users</span>
-          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          {!isMobile && (
+            <>
+              <div style={{ position: 'relative', width: '16px', height: '16px', flexShrink: 0 }}>
+                <img src="/icons/path/macintosh-hd.png" alt="Macintosh HD" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+              <span style={{ whiteSpace: 'nowrap' }}>Macintosh HD</span>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </>
+          )}
           <div style={{ width: '14px', height: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><img src="/icons/center.png" width={14} height={14} alt="user" draggable={false} style={{ borderRadius: '50%' }} /></div>
           <span style={{ whiteSpace: 'nowrap' }}>daniellopez</span>
           <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -1300,7 +1723,7 @@ export default function Home() {
                       src={
                         showModal === 'Creative Cloud' 
                           ? (creativeCloudItems.find(i => i.label === activeCreativeLabel)?.src || "/icons/skills/creativecloud.png")
-                          : (activeModal.variant === 'notes' ? "/icons/notes-symbol.png" : activeModal.variant === 'terminal' ? "/icons/terminal-symbol.png" : activeModal.variant === 'photos' ? "/icons/photos-symbol.png" : activeModal.variant === 'mail' ? "/icons/contact/email.png" : activeModal.icon)
+                          : (activeModal.variant === 'notes' ? "/icons/notes-symbol.png" : activeModal.variant === 'terminal' ? "/icons/terminal-symbol.png" : activeModal.variant === 'photos' ? "/icons/photos-symbol.png" : activeModal.variant === 'mail' ? "/icons/contact/gmail.svg" : activeModal.icon)
                       } 
                       width={14} height={14} alt={activeModal.variant || ""} draggable={false} 
                     />
@@ -1315,65 +1738,150 @@ export default function Home() {
         </div>
       </div>
 
-      {isMobile && (showModal || view !== "main" || isOpen) && (
-        <button
-          onClick={() => {
-            if (showModal) {
-              setShowModal(null);
-              return;
-            }
-            if (view !== "main") {
-              setView("main");
-              setHoveredLabel(null);
-              return;
-            }
-            if (isOpen) {
-              setIsOpen(false);
-              setHoveredLabel(null);
-            }
-          }}
-          aria-label="Go back"
+
+      {!isMobile && (
+        <div
           style={{
-            position: 'absolute',
-            left: '16px',
-            bottom: '16px',
+            position: "absolute",
+            right: "16px",
+            top: "16px",
             zIndex: 10000,
-            width: '46px',
-            height: '52px',
-            borderRadius: '999px',
-            border: '1px solid rgba(0,0,0,0.08)',
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#111',
-            cursor: 'pointer'
+            fontSize: "12px",
+            fontWeight: 500,
+            color: "#666",
+            background: "rgba(255,255,255,0.72)",
+            border: "1px solid rgba(0,0,0,0.06)",
+            borderRadius: "6px",
+            padding: "4px 8px",
+            backdropFilter: "blur(8px)"
           }}
         >
-          <ArrowBigLeft size={16} strokeWidth={2.25} />
-        </button>
+          {`Visitors: ${visitorCount ?? "..."}`}
+        </div>
       )}
 
-      <div
-        style={{
-          position: "absolute",
-          right: "16px",
-          bottom: "16px",
-          zIndex: 10000,
-          fontSize: "12px",
-          fontWeight: 500,
-          color: "#666",
-          background: "rgba(255,255,255,0.72)",
-          border: "1px solid rgba(0,0,0,0.06)",
-          borderRadius: "6px",
-          padding: "4px 8px",
-          backdropFilter: "blur(8px)"
-        }}
-      >
-        {`Visitors: ${visitorCount ?? "..."}`}
-      </div>
+      <AnimatePresence>
+        {isMobile && contactMenuOpen && (
+          <motion.div
+            key="contact-fullmenu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setContactMenuOpen(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 100001,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: "10px",
+              paddingTop: "120px",
+              background: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(28px) saturate(180%)",
+              WebkitBackdropFilter: "blur(28px) saturate(180%)",
+            }}
+          >
+            {contactLinks.map((it) => {
+              const isCopied = it.email && copiedEmail;
+              return (
+                <motion.button
+                  key={it.modal}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: contactLinks.indexOf(it) * 0.04 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (it.email) {
+                      navigator.clipboard?.writeText(it.email).catch(() => {});
+                      setCopiedEmail(true);
+                      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                      copiedTimer.current = setTimeout(() => setCopiedEmail(false), 2000);
+                    } else if (it.href) {
+                      window.open(it.href, "_blank", "noopener,noreferrer");
+                      setContactMenuOpen(false);
+                    }
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "16px",
+                    width: "min(78vw, 300px)", padding: "16px 22px", borderRadius: "16px",
+                    border: "1px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.7)",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+                    fontSize: "18px", fontWeight: 600, color: "#111", cursor: "pointer", textAlign: "left",
+                  }}
+                >
+                  <span style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {it.img ? (
+                      <img src={it.img} alt={it.label} width={27} height={27} style={{ objectFit: "contain" }} />
+                    ) : (
+                      <svg width={26} height={26} viewBox="0 0 24 24" fill={it.color}><path d={it.path} /></svg>
+                    )}
+                  </span>
+                  {isCopied ? "Copied to clipboard" : it.label}
+                </motion.button>
+              );
+            })}
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: contactLinks.length * 0.04 }}
+              onClick={(e) => { e.stopPropagation(); setContactMenuOpen(false); }}
+              style={{
+                display: "flex", alignItems: "center", gap: "16px",
+                width: "min(78vw, 300px)", padding: "16px 22px", borderRadius: "16px",
+                border: "1px solid rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.04)",
+                fontSize: "18px", fontWeight: 600, color: "#111", cursor: "pointer", textAlign: "left", marginTop: "4px",
+              }}
+            >
+              <span style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </span>
+              Back
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {notif && (
+          <motion.div
+            key="notif"
+            initial={{ opacity: 0, x: 40, scale: 0.97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 40, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            onClick={() => { if (notifTimer.current) clearTimeout(notifTimer.current); setNotif(null); }}
+            style={{
+              position: 'fixed',
+              top: isMobile ? '12px' : '16px',
+              right: isMobile ? '12px' : '16px',
+              left: isMobile ? '12px' : 'auto',
+              width: isMobile ? 'auto' : 340,
+              zIndex: 100000,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              padding: '14px 16px',
+              borderRadius: '18px',
+              background: 'rgba(248,248,248,0.82)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              cursor: 'default',
+            }}
+          >
+            {notif.icon && (
+              <div style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, overflow: 'hidden', flexShrink: 0, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}>
+                <Image src={notif.icon} alt={notif.title} fill sizes="38px" unoptimized={notif.icon.endsWith('.svg')} style={{ objectFit: 'contain', padding: 6 }} />
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>{notif.title}</span>
+                <span style={{ fontSize: 11, color: '#999', flexShrink: 0 }}>now</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#333', marginTop: 1, lineHeight: 1.35 }}>{notif.message}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

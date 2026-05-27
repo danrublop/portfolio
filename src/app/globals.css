@@ -70,3 +70,7 @@ main {
 
 .text-xs { font-size: 0.75rem; }
 .font-light { font-weight: 300; }
+
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
